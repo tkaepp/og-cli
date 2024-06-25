@@ -76,13 +76,15 @@ impl DockerComposeBuilder {
         name: S,
         image: S,
         command: Option<S>,
-        environment: Option<HashMap<String, String>>
+        environment: Option<HashMap<String, String>>,
+        port_mapping: Option<HashMap<u32, u32>>,
     ) -> DockerComposeBuilder {
         self.services.push(Service {
             name: name.into(),
             image: image.into(),
             command: command.map(|s| s.into()),
             environment,
+            port_mapping
         });
         self
     }
@@ -122,6 +124,7 @@ pub struct Service {
     image: String,
     command: Option<String>,
     environment: Option<HashMap<String, String>>,
+    port_mapping: Option<HashMap<u32, u32>>
 }
 
 impl Service {
@@ -142,6 +145,16 @@ impl Service {
                 }
             }
             None => (),
+        }
+
+        match &self.port_mapping {
+            Some(ports) => {
+                service_vec.push(indent(String::from("ports:")));
+                for (source, destination) in ports.iter() {
+                    service_vec.push(indent(indent(format!("- \"{}:{}\"", source, destination))));
+                }
+            }
+            None => ()
         }
         service_vec
     }

@@ -24,12 +24,16 @@ impl MongoDb {
         environment.insert(String::from("MONGO_INITDB_ROOT_USERNAME"), String::from("admin"));
         environment.insert(String::from("MONGO_INITDB_ROOT_PASSWORD"), String::from("admin"));
 
+        let mut port_mapping = HashMap::new();
+        port_mapping.insert(27017, 27017);
+
         let compose = DockerComposeBuilder::new()
             .add_service(
                 "mongodb-local",
                 "mongo:latest",
                 None,
-                Some(environment)
+                Some(environment),
+                Some(port_mapping)
             )
             .build();
         match mongodb_cmd {
