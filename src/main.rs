@@ -27,7 +27,7 @@ fn main() {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Busybox(busybox) => busybox::run_busybox(busybox),
+        Commands::Busybox(busybox_command) => busybox::Busybox::run(busybox_command),
         Commands::Sql => println!("Sql has not been implemented yet"),
         Commands::Kafka => println!("Kafka has not been implemented yet"),
         Commands::Flink => println!("Flink has not been implemented yet"),
@@ -35,7 +35,8 @@ fn main() {
             fix::Fix::run(fix_command);
         }
         Commands::Doctor => {
-            let plugins: Vec<Box<dyn Plugin>> = vec![Box::new(fix::Fix)];
+            let plugins: Vec<Box<dyn Plugin>> =
+                vec![Box::new(fix::Fix), Box::new(busybox::Busybox)];
             for plugin in &plugins {
                 plugin.doctor();
             }
