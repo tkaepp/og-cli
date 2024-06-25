@@ -76,12 +76,17 @@ impl DockerComposeBuilder {
         name: S,
         image: S,
         command: Option<S>,
+        environment: Option<HashMap<String, String>>,
+        port_mapping: Option<HashMap<u32, u32>>,
+        volumes: Option<Vec<Volume>>
     ) -> DockerComposeBuilder {
         self.services.push(Service {
             name: name.into(),
             image: image.into(),
             command: command.map(|s| s.into()),
-            environment: None,
+            environment,
+            port_mapping,
+            volumes
         });
         self
     }
@@ -92,6 +97,18 @@ impl DockerComposeBuilder {
         for service in &self.services {
             sb.push_str(&Self::build_service(service));
             sb.push('\n');
+        }
+        sb.push_str("volumes:\n");
+        for service in &self.services {
+            let volumes = &service.volumes;
+            match &volumes {
+                Some(volumes) => {
+                    for volume in volumes.iter() {
+                        sb.push_str(&*indent(format!("{}:", volume.volume_name)));
+                    }
+                },
+                None => ()
+            }
         }
         DockerCompose::new(sb)
     }
@@ -121,6 +138,16 @@ pub struct Service {
     image: String,
     command: Option<String>,
     environment: Option<HashMap<String, String>>,
+    port_mapping: Option<HashMap<u32, u32>>,
+    volumes: Option<Vec<Volume>>
+}
+
+#[derive(Debug)]
+pub struct Volume {
+    pub volume_name: String,
+    pub volume_type: String,
+    pub bind: String,
+    pub mode: String,
 }
 
 impl Service {
@@ -141,6 +168,26 @@ impl Service {
                 }
             }
             None => (),
+        }
+
+        match &self.port_mapping {
+            Some(ports) => {
+                service_vec.push(indent(String::from("ports:")));
+                for (source, destination) in ports.iter() {
+                    service_vec.push(indent(indent(format!("- \"{}:{}\"", source, destination))));
+                }
+            }
+            None => ()
+        }
+
+        match &self.volumes {
+            Some(volumes) => {
+                service_vec.push(indent(String::from("volumes:")));
+                for volume in volumes.iter() {
+                    service_vec.push(indent(format!("- {}:{}", volume.volume_name, volume.bind)))
+                }
+            }
+            None => ()
         }
         service_vec
     }
@@ -167,8 +214,8 @@ mod test {
     #[test]
     fn build_multiple_service() {
         let dockerbuilder = DockerComposeBuilder::new()
-            .add_service("test", "testimage", None)
-            .add_service("test2", "testimage3", None);
+            .add_service("test", "testimage", None, None, None, None)
+            .add_service("test2", "testimage3", None, None, None, None);
         dbg!(dockerbuilder.build_string());
         assert_eq!(
             dockerbuilder.build_string(),

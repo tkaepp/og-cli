@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 use og_cli::busybox::{self, BusyboxCommand};
 use og_cli::fix::{self, FixCommand};
+use og_cli::mongo_db::{self, MongoDbCommand};
 use og_cli::plugin::Plugin;
 
 #[derive(Parser, Debug)]
@@ -21,6 +22,7 @@ enum Commands {
     Flink,
     Fix(FixCommand),
     Doctor,
+    MongoDb(MongoDbCommand),
 }
 
 fn main() {
@@ -28,6 +30,7 @@ fn main() {
 
     match cli.command {
         Commands::Busybox(busybox_command) => busybox::Busybox::run(busybox_command),
+        Commands::MongoDb(mongodb_command) => mongo_db::MongoDb::run(mongodb_command),
         Commands::Sql => println!("Sql has not been implemented yet"),
         Commands::Kafka => println!("Kafka has not been implemented yet"),
         Commands::Flink => println!("Flink has not been implemented yet"),
@@ -36,7 +39,7 @@ fn main() {
         }
         Commands::Doctor => {
             let plugins: Vec<Box<dyn Plugin>> =
-                vec![Box::new(fix::Fix), Box::new(busybox::Busybox)];
+                vec![Box::new(fix::Fix), Box::new(busybox::Busybox), Box::new(mongo_db::MongoDb)];
             for plugin in &plugins {
                 plugin.doctor();
             }
