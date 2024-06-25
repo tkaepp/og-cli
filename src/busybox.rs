@@ -24,6 +24,7 @@ impl Busybox {
                 "busybox",
                 "busybox:latest",
                 Some("[\"sleep\", \"infinity\"]"),
+                None
             )
             .build();
         match busybox_cmd {

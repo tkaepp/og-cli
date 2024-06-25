@@ -76,12 +76,13 @@ impl DockerComposeBuilder {
         name: S,
         image: S,
         command: Option<S>,
+        environment: Option<HashMap<String, String>>
     ) -> DockerComposeBuilder {
         self.services.push(Service {
             name: name.into(),
             image: image.into(),
             command: command.map(|s| s.into()),
-            environment: None,
+            environment,
         });
         self
     }
