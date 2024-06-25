@@ -16,6 +16,7 @@ name = "og"
 path = "src/main.rs"
 
 [dependencies]
+bollard = "0.16.1"
 clap = { version = "4.5.7", features = ["derive"] }
 tempfile = "3.10.1"
 keyring = "2.3.3"
