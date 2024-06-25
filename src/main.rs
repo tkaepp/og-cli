@@ -1,5 +1,8 @@
 use clap::{Parser, Subcommand};
+use figment::providers::{Format, Json, Serialized};
+use figment::Figment;
 use og_cli::busybox::{self, BusyboxCommand};
+use og_cli::config::Config;
 use og_cli::fix::{self, FixCommand};
 use og_cli::kubernetes::{self, KubernetesCommand};
 use og_cli::mongo_db::{self, MongoDbCommand};
@@ -31,6 +34,12 @@ enum Commands {
 #[tokio::main]
 async fn main() {
     let cli = Cli::parse();
+
+    let config: Config = Figment::from(Serialized::defaults(Config::default()))
+        .merge(Json::file("config.json"))
+        .extract()
+        .unwrap();
+    println!("SQL container password: {}", config.sql_password);
 
     match cli.command {
         Commands::Busybox(busybox_command) => busybox::Busybox::run(busybox_command),

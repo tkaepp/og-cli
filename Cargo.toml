@@ -17,6 +17,8 @@ path = "src/main.rs"
 
 [dependencies]
 clap = { version = "4.5.7", features = ["derive"] }
+figment = { version = "0.10.19", features = ["json"] }
+serde = { version = "1.0.203", features = ["derive"] }
 tempfile = "3.10.1"
 keyring = "2.3.3"
 rancher = { git = "https://github.com/dannyyy/rancher-rs.git" }
