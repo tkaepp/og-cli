@@ -2,8 +2,18 @@
 name = "og-cli"
 version = "0.1.0"
 edition = "2021"
+authors = ["Digitec Galaxus OGs"]
+repository = "https://github.com/tkaepp/og-cli"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[package.metadata.wix]
+upgrade-guid = "AC41557C-5BC2-4191-BF43-66692C85C3D0"
+path-guid = "269B8B6A-2A06-4A55-8089-742DB1B02110"
+license = false
+eula = false
+
+[[bin]]
+name = "og"
+path = "src/main.rs"
 
 [dependencies]
 clap = { version = "4.5.7", features = ["derive"] }
@@ -11,3 +21,23 @@ tempfile = "3.10.1"
 keyring = "2.3.3"
 rancher = { git = "https://github.com/dannyyy/rancher-rs.git" }
 tokio = "1.38.0"
+
+# The profile that 'cargo dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
+
+# Config for 'cargo dist'
+[workspace.metadata.dist]
+# The preferred cargo-dist version to use in CI (Cargo.toml SemVer syntax)
+cargo-dist-version = "0.16.0"
+# CI backends to support
+ci = "github"
+# The installers to generate for each app
+installers = ["shell", "powershell", "homebrew", "msi"]
+# Target platforms to build apps for (Rust target-triple syntax)
+targets = ["aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-unknown-linux-musl", "x86_64-pc-windows-msvc"]
+# Publish jobs to run in CI
+pr-run-mode = "skip"
+# Whether to install an updater program
+install-updater = true
