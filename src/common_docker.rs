@@ -96,15 +96,15 @@ impl DockerComposeBuilder {
         DockerCompose::new(sb)
     }
 
-    pub fn build_string(&self) -> String {
-        let mut sb = String::new();
-        sb.push_str("service:\n");
-        for service in &self.services {
-            sb.push_str(&Self::build_service(service));
-            sb.push('\n');
-        }
-        sb
-    }
+    // pub fn build_string(&self) -> String {
+    //     let mut sb = String::new();
+    //     sb.push_str("service:\n");
+    //     for service in &self.services {
+    //         sb.push_str(&Self::build_service(service));
+    //         sb.push('\n');
+    //     }
+    //     sb
+    // }
 
     fn build_service(service: &Service) -> String {
         let mut service_string = Vec::new();
