@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use crate::{common_docker::DockerComposeBuilder, plugin::Plugin};
 
 use clap::{Args, Subcommand};
-use crate::common_docker::Volume;
+use crate::common_docker::{DockerCompose, Volume};
 
 pub struct MongoDb;
 
@@ -15,6 +15,11 @@ pub struct MongoDbCommand {
 impl Plugin for MongoDb {
     fn doctor(&self) {
         println!("Running the MongoDB doctor");
+        if DockerCompose::is_running() {
+            println!("✅︎ Docker daemon is running")
+        } else {
+            println!("❌ Docker daemon is not running")
+        }
     }
 }
 
@@ -22,18 +27,18 @@ impl MongoDb {
     pub fn run(cli: MongoDbCommand) {
         let mongodb_cmd = cli.command;
         let mut environment = HashMap::new();
-        environment.insert(String::from("MONGO_INITDB_ROOT_USERNAME"), String::from("admin"));
-        environment.insert(String::from("MONGO_INITDB_ROOT_PASSWORD"), String::from("admin"));
+        environment.insert("MONGO_INITDB_ROOT_USERNAME".into(), "admin".into());
+        environment.insert("MONGO_INITDB_ROOT_PASSWORD".into(), "admin".into());
 
         let mut port_mapping = HashMap::new();
         port_mapping.insert(27017, 27017);
 
         let mut volumes = Vec::new();
         volumes.insert(0, Volume {
-            volume_name: String::from("mongodb-data"),
-            volume_type: String::from("volume"),
-            bind: String::from("/data/db"),
-            mode: String::from("rw")
+            volume_name: "mongodb-data".into(),
+            volume_type: "volume".into(),
+            bind: "/data/db".into(),
+            mode: "rw".into()
         });
 
         let compose = DockerComposeBuilder::new()

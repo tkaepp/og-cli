@@ -57,6 +57,20 @@ impl DockerCompose {
         let stdout = String::from_utf8(command.stdout).unwrap();
         println!("{}", &stdout);
     }
+
+    pub fn is_running() -> bool {
+        let command = Command::new("docker")
+            .args(["info"])
+            .output();
+        
+        let stderr = String::from_utf8(command.unwrap().stderr).unwrap();
+
+        if stderr.contains("Cannot connect to the Docker daemon") {
+            return false;
+        }
+
+        return true;
+    }
 }
 
 #[derive(Debug)]
