@@ -78,7 +78,7 @@ impl DockerComposeBuilder {
         command: Option<S>,
         environment: Option<HashMap<String, String>>,
         port_mapping: Option<HashMap<u32, u32>>,
-        volumes: Option<Vec<Volume>>
+        volumes: Option<Vec<Volume>>,
     ) -> DockerComposeBuilder {
         self.services.push(Service {
             name: name.into(),
@@ -86,7 +86,7 @@ impl DockerComposeBuilder {
             command: command.map(|s| s.into()),
             environment,
             port_mapping,
-            volumes
+            volumes,
         });
         self
     }
@@ -106,22 +106,22 @@ impl DockerComposeBuilder {
                     for volume in volumes.iter() {
                         sb.push_str(&*indent(format!("{}:", volume.volume_name)));
                     }
-                },
-                None => ()
+                }
+                None => (),
             }
         }
         DockerCompose::new(sb)
     }
 
-    // pub fn build_string(&self) -> String {
-    //     let mut sb = String::new();
-    //     sb.push_str("service:\n");
-    //     for service in &self.services {
-    //         sb.push_str(&Self::build_service(service));
-    //         sb.push('\n');
-    //     }
-    //     sb
-    // }
+    pub fn build_string(&self) -> String {
+        let mut sb = String::new();
+        sb.push_str("service:\n");
+        for service in &self.services {
+            sb.push_str(&Self::build_service(service));
+            sb.push('\n');
+        }
+        sb
+    }
 
     fn build_service(service: &Service) -> String {
         let mut service_string = Vec::new();
@@ -139,7 +139,7 @@ pub struct Service {
     command: Option<String>,
     environment: Option<HashMap<String, String>>,
     port_mapping: Option<HashMap<u32, u32>>,
-    volumes: Option<Vec<Volume>>
+    volumes: Option<Vec<Volume>>,
 }
 
 #[derive(Debug)]
@@ -177,7 +177,7 @@ impl Service {
                     service_vec.push(indent(indent(format!("- \"{}:{}\"", source, destination))));
                 }
             }
-            None => ()
+            None => (),
         }
 
         match &self.volumes {
@@ -187,7 +187,7 @@ impl Service {
                     service_vec.push(indent(format!("- {}:{}", volume.volume_name, volume.bind)))
                 }
             }
-            None => ()
+            None => (),
         }
         service_vec
     }
@@ -203,7 +203,8 @@ mod test {
 
     #[test]
     fn build_simple_service() {
-        let dockerbuilder = DockerComposeBuilder::new().add_service("test", "testimage", None);
+        let dockerbuilder =
+            DockerComposeBuilder::new().add_service("test", "testimage", None, None, None, None);
         dbg!(dockerbuilder.build_string());
         assert_eq!(
             dockerbuilder.build_string(),
