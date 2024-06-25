@@ -22,9 +22,8 @@ impl DockerCompose {
         });
 
         DockerCompose { compose_file: file }
-
     }
-    
+
     pub fn start(&self) {
         let command = Command::new("docker")
             .args([
@@ -74,13 +73,18 @@ impl DockerComposeBuilder {
         }
     }
 
-    pub fn add_service<S: Into<String>>(mut self, name: S, image: S, command: Option<S>) -> DockerComposeBuilder {
+    pub fn add_service<S: Into<String>>(
+        mut self,
+        name: S,
+        image: S,
+        command: Option<S>,
+    ) -> DockerComposeBuilder {
         self.services.push(Service {
             name: name.into(),
             image: image.into(),
             command: match command {
                 Some(s) => Some(s.into()),
-                None => None
+                None => None,
             },
             environment: None,
         });
@@ -177,4 +181,3 @@ mod test {
         )
     }
 }
-

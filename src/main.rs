@@ -1,10 +1,12 @@
-mod common_docker;
 mod busybox;
+mod common_docker;
+mod fix;
 
+use crate::busybox::Busybox;
+use busybox::run_busybox;
 use clap::{Args, Parser, Subcommand};
 use common_docker::DockerComposeBuilder;
-use busybox::run_busybox;
-use crate::busybox::Busybox;
+use fix::FixArgs;
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
@@ -22,11 +24,10 @@ enum Commands {
     Sql,
     Kafka,
     Flink,
+    Fix(FixArgs),
 }
 
-
 fn main() {
-
     let cli = Cli::parse();
     dbg!(&cli);
 
@@ -35,6 +36,8 @@ fn main() {
         Commands::Sql => println!("Sql has not been implemented yet"),
         Commands::Kafka => println!("Kafka has not been implemented yet"),
         Commands::Flink => println!("Flink has not been implemented yet"),
+        Commands::Fix(fix) => {
+            fix::run_fix(fix);
+        }
     }
 }
-
