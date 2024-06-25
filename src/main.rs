@@ -1,6 +1,9 @@
 
 use clap::{Parser, Subcommand};
+use figment::providers::{Format, Json, Serialized};
+use figment::Figment;
 use og_cli::busybox::{self, BusyboxCommand};
+use og_cli::config::Config;
 use og_cli::fix::{self, FixCommand};
 use og_cli::kubernetes::{self, KubernetesCommand};
 use og_cli::mongo_db::{self, MongoDbCommand};
@@ -35,6 +38,12 @@ enum Commands {
 async fn main() {
     let cli = Cli::parse();
 
+    let config: Config = Figment::from(Serialized::defaults(Config::default()))
+        .merge(Json::file("config.json"))
+        .extract()
+        .unwrap();
+    println!("SQL container password: {}", config.sql_password);
+
     match cli.command {
         Commands::Busybox(busybox_command) => busybox::Busybox::run(busybox_command),
         Commands::MongoDb(mongodb_command) => mongo_db::MongoDb::run(mongodb_command),
@@ -43,16 +52,19 @@ async fn main() {
         Commands::Flink => println!("Flink has not been implemented yet"),
         Commands::Fix(fix_command) => {
             fix::Fix::run(fix_command);
-        },
+        }
         Commands::Doctor => {
-            let plugins: Vec<Box<dyn Plugin>> =
-                vec![Box::new(fix::Fix), Box::new(busybox::Busybox), Box::new(mongo_db::MongoDb)];
+            let plugins: Vec<Box<dyn Plugin>> = vec![
+                Box::new(fix::Fix),
+                Box::new(busybox::Busybox),
+                Box::new(mongo_db::MongoDb),
+            ];
             for plugin in &plugins {
                 plugin.doctor();
             }
-        },
+        }
         Commands::Kubernetes(kubernetes_command) => {
-                kubernetes::Kubernetes::run(kubernetes_command).await
+            kubernetes::Kubernetes::run(kubernetes_command).await
         }
     }
 }
