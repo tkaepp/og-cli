@@ -1,5 +1,7 @@
+use std::fmt::{Display, Formatter};
 use crate::{plugin::Plugin};
 use clap::{Args, Subcommand};
+use dialoguer::Select;
 use keyring::{Entry,Result};
 use rancher::RancherClient;
 
@@ -8,6 +10,17 @@ const KEYRING_KEY: &str = "rancher_token";
 const RANCHER_MGMT_BASE_URL: &str = "https://kubernetes-management.int.devinite.com";
 
 pub struct Kubernetes;
+
+struct Cluster {
+    id: String,
+    name: String,
+}
+
+impl Display for Cluster {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} ({})", self.name, self.id)
+    }
+}
 
 #[derive(Args, Debug)]
 pub struct KubernetesCommand {
@@ -25,10 +38,7 @@ impl Kubernetes {
     pub async fn run(cli: KubernetesCommand) {
         match cli.command {
             KubernetesSubcommands::Sync => println!("Doing a sync!"),
-            KubernetesSubcommands::Test => match run_test().await {
-                Ok(()) => {},
-                Err(error) => panic!("Unable to sync clusters due to errors: {error:?}")
-            },
+            KubernetesSubcommands::Test => run_test().await.expect("Unable to sync clusters due to errors")
         }
     }
 }
@@ -42,21 +52,45 @@ pub enum KubernetesSubcommands {
 }
 
 async fn run_test() -> Result<()> {
-    let password = get_rancher_token()?;
-    let rancher_client = RancherClient::new(password, String::from(RANCHER_MGMT_BASE_URL));
-    let clusters = rancher_client.clusters().await.unwrap().data;
+    let rancher_token = get_rancher_token()?;
+    let clusters = get_rancher_clusters(rancher_token).await;
 
-    println!("Found clusters");
-    for cluster in clusters {
-        println!("Id: {}\tName: {}", cluster.id, cluster.name);
+    if clusters.is_empty() {
+        println!("No clusters found to sync");
+        return Ok(())
     }
+
+    println!("Found {} clusters", clusters.len());
+    for cluster in &clusters {
+        println!("Id: {}\tName:{}", cluster.id, cluster.name);
+    }
+
+    let _ = Select::new()
+        .with_prompt("Select cluster to sync")
+        .items(&clusters)
+        .interact()
+        .unwrap();
 
     Ok(())
 }
 
 fn get_rancher_token() -> Result<String> {
     let entry = Entry::new(KEYRING_SERVICE_ID, KEYRING_KEY)?;
-    let password = entry.get_password()?;
+    entry.get_password()
+}
 
-    Ok(password)
+async fn get_rancher_clusters(rancher_token: String) -> Vec<Cluster> {
+    let rancher_client = RancherClient::new(rancher_token, String::from(RANCHER_MGMT_BASE_URL));
+    let clusters_result = rancher_client.clusters().await;
+
+    if let Ok(clusters) = clusters_result {
+        let clusters = clusters.data.into_iter().map(|c| Cluster {
+            id: c.id,
+            name: c.name
+        }).collect();
+
+        return clusters;
+    }
+
+    Vec::new()
 }
