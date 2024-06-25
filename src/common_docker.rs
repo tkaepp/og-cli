@@ -11,7 +11,7 @@ pub struct DockerCompose {
 impl DockerCompose {
     pub fn new(compose_string: String) -> DockerCompose {
         let mut file = NamedTempFile::new().unwrap_or_else(|err| {
-            println!("{err}");
+            println!("Could not create a temp file{}", err);
             process::exit(1)
         });
         write!(file, "{}", compose_string).unwrap_or_else(|err| {

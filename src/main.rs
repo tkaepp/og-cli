@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 use og_cli::busybox::{self, BusyboxCommand};
 use og_cli::fix::{self, FixCommand};
+use og_cli::dotnetrun::{self, DotnetRunCommand};
 use og_cli::plugin::Plugin;
 
 #[derive(Parser, Debug)]
@@ -20,6 +21,7 @@ enum Commands {
     Kafka,
     Flink,
     Fix(FixCommand),
+    DotnetRun(DotnetRunCommand),
     Doctor,
 }
 
@@ -30,6 +32,7 @@ fn main() {
         Commands::Busybox(busybox_command) => busybox::Busybox::run(busybox_command),
         Commands::Sql => println!("Sql has not been implemented yet"),
         Commands::Kafka => println!("Kafka has not been implemented yet"),
+        Commands::Flink => println!("Flink has not been implemented yet"),
         Commands::Flink => println!("Flink has not been implemented yet"),
         Commands::Fix(fix_command) => {
             fix::Fix::run(fix_command);
