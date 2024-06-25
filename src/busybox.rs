@@ -25,6 +25,7 @@ impl Busybox {
                 "busybox:latest",
                 Some("[\"sleep\", \"infinity\"]"),
                 None,
+                None,
                 None
             )
             .build();

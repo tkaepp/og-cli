@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use crate::{common_docker::DockerComposeBuilder, plugin::Plugin};
 
 use clap::{Args, Subcommand};
+use crate::common_docker::Volume;
 
 pub struct MongoDb;
 
@@ -27,13 +28,22 @@ impl MongoDb {
         let mut port_mapping = HashMap::new();
         port_mapping.insert(27017, 27017);
 
+        let mut volumes = Vec::new();
+        volumes.insert(0, Volume {
+            volume_name: String::from("mongodb-data"),
+            volume_type: String::from("volume"),
+            bind: String::from("/data/db"),
+            mode: String::from("rw")
+        });
+
         let compose = DockerComposeBuilder::new()
             .add_service(
                 "mongodb-local",
                 "mongo:latest",
                 None,
                 Some(environment),
-                Some(port_mapping)
+                Some(port_mapping),
+                Some(volumes)
             )
             .build();
         match mongodb_cmd {
