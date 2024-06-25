@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 use std::io::Write;
 use std::process::{self, Command};
-use std::thread::sleep;
-use std::time::Duration;
 use tempfile::NamedTempFile;
 
 #[derive(Debug)]
@@ -96,16 +94,16 @@ impl DockerComposeBuilder {
         }
         DockerCompose::new(sb)
     }
-
-    pub fn build_string(&self) -> String {
-        let mut sb = String::new();
-        sb.push_str("service:\n");
-        for service in &self.services {
-            sb.push_str(&Self::build_service(&service));
-            sb.push('\n');
-        }
-        sb
-    }
+    //
+    // pub fn build_string(&self) -> String {
+    //     let mut sb = String::new();
+    //     sb.push_str("service:\n");
+    //     for service in &self.services {
+    //         sb.push_str(&Self::build_service(&service));
+    //         sb.push('\n');
+    //     }
+    //     sb
+    // }
 
     fn build_service(service: &Service) -> String {
         let mut service_string = Vec::new();
