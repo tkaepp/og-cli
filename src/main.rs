@@ -4,8 +4,7 @@ mod fix;
 
 use crate::busybox::Busybox;
 use busybox::run_busybox;
-use clap::{Args, Parser, Subcommand};
-use common_docker::DockerComposeBuilder;
+use clap::{Parser, Subcommand};
 use fix::FixArgs;
 
 #[derive(Parser, Debug)]

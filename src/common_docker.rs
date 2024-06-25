@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 use std::io::Write;
 use std::process::{self, Command};
-use std::thread::sleep;
-use std::time::Duration;
 use tempfile::NamedTempFile;
 
 #[derive(Debug)]
@@ -31,7 +29,7 @@ impl DockerCompose {
                 "-p",
                 "test",
                 "-f",
-                &(self.compose_file.path().to_str().unwrap()),
+                (self.compose_file.path().to_str().unwrap()),
                 "up",
                 "-d",
             ])
@@ -50,7 +48,7 @@ impl DockerCompose {
                 "-p",
                 "test",
                 "-f",
-                &(self.compose_file.path().to_str().unwrap()),
+                (self.compose_file.path().to_str().unwrap()),
                 "down",
             ])
             .output()
@@ -82,10 +80,7 @@ impl DockerComposeBuilder {
         self.services.push(Service {
             name: name.into(),
             image: image.into(),
-            command: match command {
-                Some(s) => Some(s.into()),
-                None => None,
-            },
+            command: command.map(|s| s.into()),
             environment: None,
         });
         self
@@ -95,7 +90,7 @@ impl DockerComposeBuilder {
         let mut sb = String::new();
         sb.push_str("services:\n");
         for service in &self.services {
-            sb.push_str(&Self::build_service(&service));
+            sb.push_str(&Self::build_service(service));
             sb.push('\n');
         }
         DockerCompose::new(sb)
@@ -105,7 +100,7 @@ impl DockerComposeBuilder {
         let mut sb = String::new();
         sb.push_str("service:\n");
         for service in &self.services {
-            sb.push_str(&Self::build_service(&service));
+            sb.push_str(&Self::build_service(service));
             sb.push('\n');
         }
         sb
@@ -141,7 +136,7 @@ impl Service {
         match &self.environment {
             Some(environments) => {
                 service_vec.push(indent(String::from("environment:")));
-                for (key, value) in environments.into_iter() {
+                for (key, value) in environments.iter() {
                     service_vec.push(indent(indent(format!("- {}={}", key, value))));
                 }
             }
