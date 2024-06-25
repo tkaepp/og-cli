@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 use og_cli::busybox::{self, BusyboxCommand};
 use og_cli::fix::{self, FixCommand};
+use og_cli::kubernetes::{self, KubernetesCommand};
 use og_cli::plugin::Plugin;
 
 #[derive(Parser, Debug)]
@@ -21,9 +22,12 @@ enum Commands {
     Flink,
     Fix(FixCommand),
     Doctor,
+    /// Run kubernetes config helpers
+    Kubernetes(KubernetesCommand)
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let cli = Cli::parse();
 
     match cli.command {
@@ -33,13 +37,16 @@ fn main() {
         Commands::Flink => println!("Flink has not been implemented yet"),
         Commands::Fix(fix_command) => {
             fix::Fix::run(fix_command);
-        }
+        },
         Commands::Doctor => {
             let plugins: Vec<Box<dyn Plugin>> =
                 vec![Box::new(fix::Fix), Box::new(busybox::Busybox)];
             for plugin in &plugins {
                 plugin.doctor();
             }
+        },
+        Commands::Kubernetes(kubernetes_command) => {
+                kubernetes::Kubernetes::run(kubernetes_command).await
         }
     }
 }

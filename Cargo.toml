@@ -8,4 +8,6 @@ edition = "2021"
 [dependencies]
 clap = { version = "4.5.7", features = ["derive"] }
 tempfile = "3.10.1"
-
+keyring = "2.3.3"
+rancher = { git = "https://github.com/dannyyy/rancher-rs.git" }
+tokio = "1.38.0"
