@@ -3,6 +3,7 @@ use figment::providers::{Format, Json, Serialized};
 use figment::Figment;
 use og_cli::busybox::{self, BusyboxCommand};
 use og_cli::config::Config;
+use og_cli::curl::{self, CurlCommand};
 use og_cli::fix::{self, FixCommand};
 use og_cli::kubernetes::{self, KubernetesCommand};
 use og_cli::mongo_db::{self, MongoDbCommand};
@@ -25,6 +26,7 @@ enum Commands {
     Kafka,
     Flink,
     Fix(FixCommand),
+    Curl(CurlCommand),
     Doctor,
     /// Run kubernetes config helpers
     Kubernetes(KubernetesCommand),
@@ -37,6 +39,7 @@ async fn main() {
 
     let config: Config = Figment::from(Serialized::defaults(Config::default()))
         .merge(Json::file("config.json"))
+        .merge(Json::file("curltest.json"))
         .extract()
         .unwrap();
     println!("SQL container password: {}", config.sql_password);
@@ -47,6 +50,7 @@ async fn main() {
         Commands::Sql => println!("Sql has not been implemented yet"),
         Commands::Kafka => println!("Kafka has not been implemented yet"),
         Commands::Flink => println!("Flink has not been implemented yet"),
+        Commands::Curl(curl_command) => curl::Curl::run(curl_command, config.curl_api_config),
         Commands::Fix(fix_command) => {
             fix::Fix::run(fix_command);
         }
@@ -55,6 +59,7 @@ async fn main() {
                 Box::new(fix::Fix),
                 Box::new(busybox::Busybox),
                 Box::new(mongo_db::MongoDb),
+                Box::new(curl::Curl),
             ];
             for plugin in &plugins {
                 plugin.doctor();
