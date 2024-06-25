@@ -29,7 +29,6 @@ enum Commands {
 
 fn main() {
     let cli = Cli::parse();
-    dbg!(&cli);
 
     match cli.command {
         Commands::Busybox(busybox) => run_busybox(busybox),
