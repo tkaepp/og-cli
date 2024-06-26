@@ -3,6 +3,7 @@ use std::fmt::{Display, Formatter};
 use clap::{Args, Subcommand};
 use colored::Colorize;
 use dialoguer::MultiSelect;
+use eyre::Context;
 use keyring::{Entry, Result};
 use rancher::RancherClient;
 
@@ -272,7 +273,7 @@ fn get_cluster_sync_actions(
 }
 
 async fn create_kubeconfig_entry(rancher_cluster: &Cluster, rancher_token: &String) -> eyre::Result<()> {
-    let mut kubeconfig = read_kubeconfig().unwrap();
+    let mut kubeconfig = read_kubeconfig()?;
     let name = &get_cluster_fullname(rancher_cluster);
     let token_url = rancher_cluster.token_url.as_ref().expect("");
     let rancher_kubeconfig =
@@ -288,7 +289,7 @@ async fn create_kubeconfig_entry(rancher_cluster: &Cluster, rancher_token: &Stri
 
     kubeconfig.contexts.push(NamedContext {
         name: name.to_string(),
-        context: Context {
+        context: Context1 {
             cluster: name.to_string(),
             user: name.to_string(),
             namespace: None,

@@ -1,4 +1,4 @@
-use eyre::{ContextCompat, Result};
+use eyre::{Context, ContextCompat, Result};
 use homedir::get_my_home;
 use serde::{Deserialize, Serialize};
 use serde_yaml::{self, Value};
@@ -35,12 +35,12 @@ pub struct Cluster {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct NamedContext {
-    pub context: Context,
+    pub context: Context1,
     pub name: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Context {
+pub struct Context1 {
     pub cluster: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub namespace: Option<String>,
@@ -70,10 +70,12 @@ pub fn read_kubeconfig() -> Result<KubeConfig> {
     let kube_config_path = get_kubeconfig_path();
 
     // Read the existing kube config file
-    let kube_config_content = fs::read_to_string(kube_config_path?)?;
+    let kube_config_content = fs::read_to_string(kube_config_path?)
+        .with_context(|| "A valid kubeconfig must exist")?;
 
     // Parse the YAML content into a KubeConfig struct
-    let kube_config: KubeConfig = serde_yaml::from_str(&kube_config_content)?;
+    let kube_config: KubeConfig = serde_yaml::from_str(&kube_config_content)
+        .with_context(|| "Found kubeconfig is invalid")?;
 
     Ok(kube_config)
 }
