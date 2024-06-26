@@ -1,6 +1,6 @@
 [package]
 name = "og-cli"
-version = "0.1.0"
+version = "0.3.0"
 edition = "2021"
 authors = ["Digitec Galaxus OGs"]
 repository = "https://github.com/tkaepp/og-cli"
@@ -27,8 +27,20 @@ keyring = "2.3.3"
 rancher = { git = "https://github.com/dannyyy/rancher-rs.git" }
 tokio = "1.38.0"
 dialoguer = "0.11.0"
+kube = "0.92.1"
+k8s-openapi = { version = "0.22.0", features = ["v1_24"] }
 lazy_static = "1.5.0"
 eyre = "0.6.12"
+homedir = "0.2.1"
+reqwest = "0.12.5"
+ssh-key = { version = "0.6.6", features = [
+    "getrandom",
+    "encryption",
+    "crypto",
+    "rsa",
+    "ed25519",
+] }
+futures-util = "0.3.30"
 
 # The profile that 'cargo dist' will build with
 [profile.dist]
@@ -48,7 +60,6 @@ targets = [
     "aarch64-apple-darwin",
     "x86_64-apple-darwin",
     "x86_64-unknown-linux-gnu",
-    "x86_64-unknown-linux-musl",
     "x86_64-pc-windows-msvc",
 ]
 # Publish jobs to run in CI

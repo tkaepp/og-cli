@@ -1,6 +1,8 @@
 use crate::{common_docker::DockerComposeBuilder, plugin::Plugin};
 
 use clap::{Args, Subcommand};
+use crate::common_docker::DockerCompose;
+use crate::doctor::{DoctorFailure, DoctorSuccess};
 
 pub struct Busybox;
 
@@ -11,8 +13,22 @@ pub struct BusyboxCommand {
 }
 
 impl Plugin for Busybox {
-    fn doctor(&self) {
-        println!("Running the busybox doctor");
+    fn doctor(&self) -> Vec<Result<DoctorSuccess, DoctorFailure>> {
+        let mut result = Vec::new();
+
+        if DockerCompose::is_running() {
+            result.insert(result.len(), Ok(DoctorSuccess {
+                message: "Docker daemon is running".into(),
+                plugin: "Busybox".into()
+            }));
+        } else {
+            result.insert(result.len(), Err(DoctorFailure {
+                message: "Docker daemon is not running".into(),
+                plugin: "Busybox".into()
+            }));
+        }
+
+        result
     }
 }
 
