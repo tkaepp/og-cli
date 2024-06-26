@@ -10,11 +10,32 @@ impl Plugin for Git {
             Self::is_command_in_path("git"),
             Self::is_command_in_path("gh"),
             Self::is_command_in_path("az"),
+            Self::git_config_check(),
         ]
     }
+
 }
 
 impl Git {
+    fn git_config_check() -> Result<DoctorSuccess, DoctorFailure> {
+        let entry = "push.autoSetupRemote";
+        let config = git2::Config::open_default().expect("git config lookup failed!");
+        match config.get_bool(entry) {
+            Ok(c) if c == true => { Ok(DoctorSuccess {
+                message: format!("{} is configured correct with {} ", entry, c.to_string()),
+                plugin: "git - config".into(),
+            }) }
+            Ok(c) if c == false => { Err(DoctorFailure {
+                message: format!("{} is not configured wrong with {}", entry, c.to_string()),
+                plugin: "git - config".into(),
+            }) }
+            _ => { Err(DoctorFailure {
+                message: format!("{} is not configured wrong.", entry),
+                plugin: "git - config".into(),
+            })}
+        }
+    }
+
     fn is_command_in_path(command: &str) -> Result<DoctorSuccess, DoctorFailure> {
         let res = match Command::new(command)
             .stdout(std::process::Stdio::null())
