@@ -26,8 +26,6 @@ enum Commands {
     Busybox(BusyboxCommand),
     /// Run an sql server inside a docker container
     Sql(SqlCommand),
-    Kafka,
-    Flink,
     Fix(FixCommand),
     Dotnet(DotnetCommand),
     Doctor,
@@ -46,8 +44,6 @@ async fn main() -> Result<()> {
         Commands::Busybox(busybox_command) => busybox::Busybox::run(busybox_command),
         Commands::MongoDb(mongodb_command) => mongo_db::MongoDb::run(mongodb_command),
         Commands::Sql(sql_command) => sql::Sql::run(sql_command).await?,
-        Commands::Kafka => println!("Kafka has not been implemented yet"),
-        Commands::Flink => println!("Flink has not been implemented yet"),
         Commands::Dotnet(command) => dotnet::Dotnet::run(command).expect("Reason"),
         Commands::Git(git_command) => git::Git::run(git_command),
         Commands::Fix(fix_command) => {
