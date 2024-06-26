@@ -8,7 +8,6 @@ use og_cli::git;
 use og_cli::git::GitCommand;
 use og_cli::kubernetes::{self, KubernetesCommand};
 use og_cli::mongo_db::{self, MongoDbCommand};
-use og_cli::plugin::Plugin;
 use og_cli::sql;
 use og_cli::sql::SqlCommand;
 
@@ -44,7 +43,7 @@ async fn main() -> Result<()> {
     match cli.command {
         Commands::Busybox(busybox_command) => busybox::Busybox::run(busybox_command),
         Commands::MongoDb(mongodb_command) => mongo_db::MongoDb::run(mongodb_command),
-        Commands::Sql(sql_command) => sql::Sql::run(sql_command).await,
+        Commands::Sql(sql_command) => sql::Sql::run(sql_command).await?,
         Commands::Kafka => println!("Kafka has not been implemented yet"),
         Commands::Flink => println!("Flink has not been implemented yet"),
         Commands::Git(git_command) => git::Git::run(git_command),

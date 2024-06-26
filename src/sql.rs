@@ -7,6 +7,7 @@ use bollard::models::ContainerStateStatusEnum::{EMPTY, EXITED, RUNNING};
 use bollard::models::{ContainerStateStatusEnum, HostConfig, PortBinding};
 use bollard::Docker;
 use clap::{Args, Subcommand};
+use eyre::Result;
 
 use crate::get_config;
 
@@ -32,10 +33,10 @@ pub enum SqlSubcommands {
 }
 
 impl Sql {
-    pub async fn run(cli: SqlCommand) {
+    pub async fn run(cli: SqlCommand) -> Result<()> {
         let sql_cmd = cli.command;
-        let docker = Docker::connect_with_local_defaults().unwrap();
-        let status = get_container_status(docker.clone()).await;
+        let docker = init_docker().await?;
+        let status = get_container_status(docker.clone()).await?;
 
         match sql_cmd {
             SqlSubcommands::Start => {
@@ -44,9 +45,9 @@ impl Sql {
                         "Container {} is already running, nothing to do.",
                         CONTAINER_NAME
                     );
-                    return;
+                    return Ok(())
                 }
-                start(docker, status).await;
+                start(docker, status).await?;
             }
             SqlSubcommands::Stop => {
                 if status == EXITED {
@@ -54,9 +55,9 @@ impl Sql {
                         "Container {} is already stopped, nothing to do.",
                         CONTAINER_NAME
                     );
-                    return;
+                    return Ok(())
                 }
-                stop(docker).await;
+                stop(docker).await?;
             }
             SqlSubcommands::Remove => {
                 if status == EMPTY {
@@ -64,54 +65,66 @@ impl Sql {
                         "Container {} doesn't exist, nothing to remove.",
                         CONTAINER_NAME
                     );
-                    return;
+                    return Ok(())
                 }
-                remove(docker).await;
+                remove(docker).await?;
             }
             SqlSubcommands::Status => {
-                println!("Container {} status: {:?}", CONTAINER_NAME, status)
+                println!("Container {} status: {:?}", CONTAINER_NAME, status);
             }
         }
+
+        Ok(())
     }
 }
 
-async fn remove(docker: Docker) {
+async fn remove(docker: Docker) -> Result<()> {
     println!("Removing container {}...", CONTAINER_NAME);
-    let _ = docker.remove_container(CONTAINER_NAME.as_ref(), None).await;
+    docker
+        .remove_container(CONTAINER_NAME.as_ref(), None)
+        .await
+        .map_err(|err| eyre::eyre!(err))?;
     println!("Container {} removed ", CONTAINER_NAME);
+    Ok(())
 }
 
-async fn start(docker: Docker, status: ContainerStateStatusEnum) {
+async fn start(docker: Docker, status: ContainerStateStatusEnum) -> Result<()> {
     if status == EMPTY {
         println!(
             "Container {} doesn't exist, container will be created and started...",
             CONTAINER_NAME
         );
-        create_and_run_container(docker).await;
-        return;
+        create_and_run_container(docker).await?;
+        return Ok(());
     }
 
     println!(
         "Container {} exists but was stopped, container will restart...",
         CONTAINER_NAME
     );
-    restart_container(docker).await;
+    restart_container(docker).await?;
+    Ok(())
 }
 
-async fn stop(docker: Docker) {
+async fn stop(docker: Docker) -> Result<()> {
     println!("Stopping container {}...", CONTAINER_NAME);
-    let _ = docker.stop_container(CONTAINER_NAME.as_ref(), None).await;
+    docker
+        .stop_container(CONTAINER_NAME.as_ref(), None)
+        .await
+        .map_err(|err| eyre::eyre!(err))?;
     println!("Container {} stopped ", CONTAINER_NAME);
+
+    Ok(())
 }
 
-async fn restart_container(docker: Docker) {
+async fn restart_container(docker: Docker) -> Result<()> {
     docker
         .restart_container(CONTAINER_NAME, Some(RestartContainerOptions { t: 10 }))
         .await
-        .unwrap();
+        .map_err(|err| eyre::eyre!(err))
 }
 
-async fn create_and_run_container(docker: Docker) {
+async fn create_and_run_container(docker: Docker) -> Result<()> {
     let pwd = &get_config().sql_password;
     let formatted_pwd = &format!("MSSQL_SA_PASSWORD={pwd}");
     let env = vec![formatted_pwd, "ACCEPT_EULA=Y"];
@@ -147,23 +160,30 @@ async fn create_and_run_container(docker: Docker) {
     let result = docker
         .create_container(options, creation_config)
         .await
-        .unwrap();
+        .map_err(|err| eyre::eyre!(err))?;
+
     docker
         .start_container(CONTAINER_NAME, None::<StartContainerOptions<String>>)
         .await
-        .unwrap();
+        .map_err(|err| eyre::eyre!(err))?;
+
     println!("Container {} created and started", result.id);
+
+    Ok(())
 }
 
-async fn get_container_status(docker: Docker) -> ContainerStateStatusEnum {
+async fn get_container_status(docker: Docker) -> Result<ContainerStateStatusEnum> {
     let mut filters = HashMap::new();
     filters.insert("name", vec![CONTAINER_NAME]);
 
     let inspect = docker
         .inspect_container(CONTAINER_NAME.as_ref(), None)
-        .await;
-    match inspect {
-        Ok(_) => inspect.unwrap().state.unwrap().status.unwrap(),
-        Err(_) => EMPTY,
-    }
+        .await
+        .map_err(|err| eyre::eyre!(err))?;
+
+    Ok(inspect.state.unwrap().status.unwrap())
+}
+
+async fn init_docker() -> Result<Docker> {
+    Docker::connect_with_local_defaults().map_err(|err| eyre::eyre!(err))
 }
