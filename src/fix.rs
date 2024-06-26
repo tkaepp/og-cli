@@ -5,7 +5,7 @@ use std::env;
 use std::fs;
 use std::process::Command;
 use homedir::get_my_home;
-use eyre::{eyre, Context, ContextCompat, Result};
+use eyre::{ContextCompat, Result};
 
 pub struct Fix;
 

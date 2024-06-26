@@ -1,3 +1,5 @@
+use crate::doctor::DoctorFailure;
+use crate::doctor::DoctorSuccess;
 use crate::plugin::Plugin;
 use clap::{Args, Subcommand};
 use dialoguer::Select;
@@ -122,8 +124,9 @@ fn dotnet_run(additional_params: Option<String>) -> Result<()> {
 }
 
 impl Plugin for Dotnet {
-    fn doctor(&self) {
+    fn doctor(&self) -> Vec<Result<DoctorSuccess, DoctorFailure>> {
         println!("Running the fix doctor");
+        Vec::new()
     }
 }
 

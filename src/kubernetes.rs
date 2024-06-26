@@ -5,17 +5,7 @@ use dialoguer::{MultiSelect};
 use keyring::{Entry, Result};
 use kube::config::Kubeconfig;
 use rancher::RancherClient;
-use std::fmt::{Display, Formatter};
-=======
-use std::fmt::{Display, Formatter};
-use crate::{get_config, plugin::Plugin};
-use clap::{Args, Subcommand};
-use dialoguer::{MultiSelect};
-use keyring::{Entry, Result};
-use kube::config::Kubeconfig;
-use rancher::RancherClient;
 use crate::doctor::{DoctorFailure, DoctorSuccess};
->>>>>>> main
 
 const KEYRING_SERVICE_ID: &str = "dg_cli_plugin_kube";
 const KEYRING_KEY: &str = "rancher_token";
