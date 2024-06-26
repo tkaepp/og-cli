@@ -1,4 +1,5 @@
 use crate::plugin::Plugin;
+use dialoguer::Select;
 use clap::{Args, Subcommand};
 use eyre::{Context, Result};
 use glob::glob;
@@ -39,12 +40,21 @@ fn dotnet_run(additional_params: Option<String>) -> Result<()> {
     let regex = lauch_settings_regex()?;
     let env_regex = env_var_regex()?;
 
-    let filtered: Vec<_> = g.iter()
+    let filtered: Vec<&str> = g.iter()
         .map(|f|
             f.split("\n").filter(|l| regex.is_match(l) && !env_regex.is_match(l)))
         .flatten()
         .collect();
+    let launch_settings = filtered
+        .iter()
+        .map(|l| regex.captures(*l).unwrap()["lsn"]);
     filtered.iter().for_each(|f| println!("{}", f));
+    let selected = Select::new()
+        .with_prompt("Select launch setting")
+        .items(&filtered)
+        .interact()?;
+
+    println!("{}", filtered[selected]);
 
     Ok(())
 }
