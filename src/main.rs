@@ -2,9 +2,8 @@ use clap::{Parser, Subcommand};
 use eyre::Result;
 
 use og_cli::busybox::{self, BusyboxCommand};
-use og_cli::config::Config;
-use og_cli::dotnet::{self, DotnetCommand};
 use og_cli::config;
+use og_cli::dotnet::{self, DotnetCommand};
 use og_cli::fix::{self, FixCommand};
 use og_cli::git;
 use og_cli::git::GitCommand;
@@ -52,7 +51,7 @@ async fn main() -> Result<()> {
         Commands::Dotnet(command) => dotnet::Dotnet::run(command).expect("Reason"),
         Commands::Git(git_command) => git::Git::run(git_command),
         Commands::Fix(fix_command) => {
-            fix::Fix::run(fix_command);
+            fix::Fix::run(fix_command)?;
         }
         Commands::Doctor => og_cli::doctor::run(),
         Commands::Kubernetes(kubernetes_command) => {

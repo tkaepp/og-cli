@@ -1,6 +1,5 @@
 use std::ffi::OsStr;
 
-use clap::builder::TypedValueParser;
 use dialoguer::MultiSelect;
 use eyre::{ContextCompat, Result};
 use homedir::get_my_home;
