@@ -4,8 +4,8 @@ use std::process::Command;
 use dialoguer::MultiSelect;
 use eyre::{ContextCompat, Result};
 use homedir::get_my_home;
-use ssh_key::{Algorithm, LineEnding, PrivateKey, PublicKey};
 use ssh_key::rand_core::OsRng;
+use ssh_key::{Algorithm, LineEnding, PrivateKey, PublicKey};
 
 use crate::git;
 use crate::git::commands::GitSubCommands;
@@ -30,7 +30,6 @@ fn setup() -> Result<()> {
 
 #[cfg(target_family = "unix")]
 fn add_keys_github() -> Result<()> {
-
     Command::new("sh")
         .arg("-c")
         .arg("gh ssh-key add ~/.ssh/og-ssh.pub -t og")
