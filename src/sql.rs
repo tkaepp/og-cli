@@ -8,8 +8,8 @@ use bollard::models::{ContainerStateStatusEnum, HostConfig, PortBinding};
 use bollard::Docker;
 use clap::{Args, Subcommand};
 
-use crate::get_config;
 use crate::doctor::{DoctorFailure, DoctorSuccess};
+use crate::get_config;
 use crate::plugin::Plugin;
 
 pub struct Sql;
@@ -31,7 +31,7 @@ pub enum SqlSubcommands {
     Start,
     Stop,
     Remove,
-    Status
+    Status,
 }
 
 impl Sql {
