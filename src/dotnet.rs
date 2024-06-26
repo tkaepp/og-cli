@@ -1,9 +1,9 @@
 use crate::plugin::Plugin;
 use clap::{Args, Subcommand};
-use eyre::Result;
+use eyre::{Context, Result};
 use glob::glob;
 use regex::Regex;
-use std::fs;
+use std::{f32::consts::E, fs};
 
 pub struct Dotnet;
 
@@ -14,11 +14,13 @@ pub struct DotnetCommand {
 }
 
 fn lauch_settings_regex() -> Result<regex::Regex> {
-    Regex::new(r###"\"\s{4,}"###)?
+    Regex::new(r###"^\s{4,6}\"(?<lsn>[^:]*)\": \{$"###)
+        .with_context(|| "Something wrong with the launch setting regex")
 }
 
-pub struct LauchSettingsRegex {
-    expr: Regex,
+fn env_var_regex() -> Result<regex::Regex> {
+    Regex::new(r###"environ.*Varia"###)
+        .with_context(|| "Something wrong with the environment variable regex")
 }
 
 impl Dotnet {
@@ -34,10 +36,14 @@ fn dotnet_run(additional_params: Option<String>) -> Result<()> {
         .into_iter()
         .map(|f| fs::read_to_string(f.unwrap()).expect("Could not read file"))
         .collect();
-    // let regex = Regex::new(r###"\s*\"[a-zA-Z()]*\": \{$"###)?;
-    let regex = Regex::new(r###"\"\s{4,}"###)?;
+    let regex = lauch_settings_regex()?;
+    let env_regex = env_var_regex()?;
 
-    let filtered: Vec<_> = g.iter().filter(|l| regex.is_match(l)).collect();
+    let filtered: Vec<_> = g.iter()
+        .map(|f|
+            f.split("\n").filter(|l| regex.is_match(l) && !env_regex.is_match(l)))
+        .flatten()
+        .collect();
     filtered.iter().for_each(|f| println!("{}", f));
 
     Ok(())
@@ -59,5 +65,20 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_the_regex() {}
+    fn test_the_regex_is_match() {
+        let regex = lauch_settings_regex().expect("Regex fails");
+
+        assert!(regex.is_match("    \"Erp - Dev\": {"));
+        assert!(!regex.is_match("\"Erp - Dev\": {"));
+        assert!(!regex.is_match("\"Erp - Dev\": \"something\" ,"));
+        assert!(!regex.is_match("\"Erp - Dev\": \"something\" {"));
+    }
+
+    #[test]
+    fn test_the_regex_capturing() {
+        let regex = lauch_settings_regex().expect("Regex fails");
+        let capture = regex.captures("    \"Erp - Dev\": {").unwrap();
+
+        assert_eq!(capture["lsn"], "Erp - Dev".to_string());
+    }
 }
