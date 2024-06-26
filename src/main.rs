@@ -1,15 +1,12 @@
 use clap::{Parser, Subcommand};
 use eyre::Result;
-use figment::providers::{Format, Json, Serialized};
-use figment::Figment;
 use og_cli::busybox::{self, BusyboxCommand};
-use og_cli::config::Config;
+use og_cli::config;
 use og_cli::fix::{self, FixCommand};
 use og_cli::kubernetes::{self, KubernetesCommand};
 use og_cli::mongo_db::{self, MongoDbCommand};
 use og_cli::sql;
 use og_cli::sql::SqlCommand;
-use og_cli::{config, CONFIG};
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
