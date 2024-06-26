@@ -36,7 +36,7 @@ impl Sql {
     pub async fn run(cli: SqlCommand) -> Result<()> {
         let sql_cmd = cli.command;
         let docker = init_docker().await?;
-        let status = get_container_status2(docker.clone()).await?;
+        let status = get_container_status(docker.clone()).await?;
 
         match sql_cmd {
             SqlSubcommands::Start => {
@@ -90,8 +90,7 @@ async fn remove(docker: Docker) -> Result<()> {
     println!("Removing container {}...", CONTAINER_NAME);
     docker
         .remove_container(CONTAINER_NAME.as_ref(), None)
-        .await
-        .map_err(|err| eyre::eyre!(err))?;
+        .await?;
     println!("Container {} removed ", CONTAINER_NAME);
     Ok(())
 }
@@ -116,20 +115,15 @@ async fn start(docker: Docker, status: ContainerStateStatusEnum) -> Result<()> {
 
 async fn stop(docker: Docker) -> Result<()> {
     println!("Stopping container {}...", CONTAINER_NAME);
-    docker
-        .stop_container(CONTAINER_NAME.as_ref(), None)
-        .await
-        .map_err(|err| eyre::eyre!(err))?;
+    docker.stop_container(CONTAINER_NAME.as_ref(), None).await?;
     println!("Container {} stopped ", CONTAINER_NAME);
-
     Ok(())
 }
 
 async fn restart_container(docker: Docker) -> Result<()> {
-    docker
+    Ok(docker
         .restart_container(CONTAINER_NAME, Some(RestartContainerOptions { t: 10 }))
-        .await
-        .map_err(|err| eyre::eyre!(err))
+        .await?)
 }
 
 async fn create_and_run_container(docker: Docker) -> Result<()> {
@@ -165,15 +159,11 @@ async fn create_and_run_container(docker: Docker) -> Result<()> {
         ..Default::default()
     };
 
-    let result = docker
-        .create_container(options, creation_config)
-        .await
-        .map_err(|err| eyre::eyre!(err))?;
+    let result = docker.create_container(options, creation_config).await?;
 
     docker
         .start_container(CONTAINER_NAME, None::<StartContainerOptions<String>>)
-        .await
-        .map_err(|err| eyre::eyre!(err))?;
+        .await?;
 
     println!("Container {} created and started", result.id);
 
@@ -181,25 +171,6 @@ async fn create_and_run_container(docker: Docker) -> Result<()> {
 }
 
 async fn get_container_status(docker: Docker) -> Result<ContainerStateStatusEnum> {
-    let mut filters = HashMap::new();
-    filters.insert("name", vec![CONTAINER_NAME]);
-
-    let inspect = docker
-        .inspect_container(CONTAINER_NAME.as_ref(), None)
-        .await
-        .map_err(|err| eyre::eyre!(err))?;
-
-    Ok(inspect.state.unwrap().status.unwrap())
-}
-
-async fn init_docker() -> Result<Docker> {
-    Docker::connect_with_local_defaults().map_err(|err| eyre::eyre!(err))
-}
-
-async fn get_container_status2(docker: Docker) -> Result<ContainerStateStatusEnum> {
-    let mut filters = HashMap::new();
-    filters.insert("name", vec![CONTAINER_NAME]);
-
     let inspect = docker
         .inspect_container(CONTAINER_NAME.as_ref(), None)
         .await;
@@ -213,4 +184,8 @@ async fn get_container_status2(docker: Docker) -> Result<ContainerStateStatusEnu
             }
         }
     }
+}
+
+async fn init_docker() -> Result<Docker> {
+    Ok(Docker::connect_with_local_defaults()?)
 }
