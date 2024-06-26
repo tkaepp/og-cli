@@ -1,10 +1,11 @@
 use std::{
     fs::{self, File},
     io::copy,
+    path::Path,
     sync::OnceLock,
 };
 
-use eyre::{eyre, ContextCompat, Result};
+use eyre::{eyre, Context, ContextCompat, Result};
 use figment::{
     providers::{Format, Json, Serialized},
     Figment,
@@ -42,8 +43,9 @@ pub async fn init_config() -> Result<()> {
 
     if !ogrc.exists() {
         println!("Config doesn't exist yet, fetching from {CONFIG_URL}");
-        let content = reqwest::get(CONFIG_URL).await?.text().await?;
-        copy(&mut content.as_bytes(), &mut File::create(&ogrc)?)?;
+        download_config(&ogrc)
+            .await
+            .context("Unable to fetch config, are you connected to the VPN?")?;
     }
 
     let config: Config = Figment::from(Serialized::defaults(Config::default()))
@@ -52,6 +54,17 @@ pub async fn init_config() -> Result<()> {
     CONFIG
         .set(config)
         .map_err(|_| eyre!("Failed to set config"))?;
+
+    Ok(())
+}
+
+async fn download_config(destination: &Path) -> Result<()> {
+    let content = reqwest::get(CONFIG_URL)
+        .await?
+        .error_for_status()?
+        .text()
+        .await?;
+    copy(&mut content.as_bytes(), &mut File::create(destination)?)?;
 
     Ok(())
 }
