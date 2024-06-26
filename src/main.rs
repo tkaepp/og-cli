@@ -52,7 +52,7 @@ async fn main() -> Result<()> {
         }
         Commands::Doctor => og_cli::doctor::run(),
         Commands::Kubernetes(kubernetes_command) => {
-            kubernetes::Kubernetes::run(kubernetes_command).await
+            kubernetes::Kubernetes::run(kubernetes_command).await?
         }
     }
 

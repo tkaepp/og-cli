@@ -1822,6 +1822,7 @@ dependencies = [
  "rancher",
  "reqwest",
  "serde",
+ "serde_json",
  "serde_yaml",
  "ssh-key",
  "tempfile",
