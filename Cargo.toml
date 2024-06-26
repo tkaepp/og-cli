@@ -29,6 +29,8 @@ kube = "0.92.1"
 k8s-openapi = { version = "0.22.0", features = ["v1_24"] }
 lazy_static = "1.5.0"
 eyre = "0.6.12"
+homedir = "0.2.1"
+reqwest = "0.12.5"
 
 # The profile that 'cargo dist' will build with
 [profile.dist]

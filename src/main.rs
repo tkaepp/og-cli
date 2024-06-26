@@ -9,7 +9,7 @@ use og_cli::kubernetes::{self, KubernetesCommand};
 use og_cli::mongo_db::{self, MongoDbCommand};
 use og_cli::sql;
 use og_cli::sql::SqlCommand;
-use og_cli::CONFIG;
+use og_cli::{config, CONFIG};
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
@@ -37,16 +37,7 @@ enum Commands {
 #[tokio::main]
 async fn main() -> Result<()> {
     let cli = Cli::parse();
-
-    let config: Config = Figment::from(Serialized::defaults(Config::default()))
-        .merge(Json::file("config.json"))
-        .extract()
-        .unwrap();
-    CONFIG.set(config).unwrap();
-    println!(
-        "SQL container password: {}",
-        CONFIG.get().unwrap().sql_password
-    );
+    config::init_config().await?;
 
     match cli.command {
         Commands::Busybox(busybox_command) => busybox::Busybox::run(busybox_command),
@@ -65,5 +56,3 @@ async fn main() -> Result<()> {
 
     Ok(())
 }
-
-
