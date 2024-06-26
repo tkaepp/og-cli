@@ -1,6 +1,6 @@
+use crate::doctor::{DoctorFailure, DoctorSuccess};
 use crate::plugin::Plugin;
 use clap::{Args, Subcommand};
-use crate::doctor::{DoctorFailure, DoctorSuccess};
 
 pub struct Fix;
 

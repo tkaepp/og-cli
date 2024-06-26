@@ -1,7 +1,7 @@
 use crate::{common_docker::DockerComposeBuilder, plugin::Plugin};
 
-use clap::{Args, Subcommand};
 use crate::doctor::{DoctorFailure, DoctorSuccess};
+use clap::{Args, Subcommand};
 
 pub struct Busybox;
 
@@ -27,7 +27,7 @@ impl Busybox {
                 Some("[\"sleep\", \"infinity\"]"),
                 None,
                 None,
-                None
+                None,
             )
             .build();
         match busybox_cmd {
