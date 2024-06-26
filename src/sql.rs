@@ -36,7 +36,7 @@ impl Sql {
     pub async fn run(cli: SqlCommand) -> Result<()> {
         let sql_cmd = cli.command;
         let docker = init_docker().await?;
-        let status = get_container_status(docker.clone()).await?;
+        let status = get_container_status2(docker.clone()).await?;
 
         match sql_cmd {
             SqlSubcommands::Start => {
@@ -45,7 +45,7 @@ impl Sql {
                         "Container {} is already running, nothing to do.",
                         CONTAINER_NAME
                     );
-                    return Ok(())
+                    return Ok(());
                 }
                 start(docker, status).await?;
             }
@@ -55,7 +55,7 @@ impl Sql {
                         "Container {} is already stopped, nothing to do.",
                         CONTAINER_NAME
                     );
-                    return Ok(())
+                    return Ok(());
                 }
                 stop(docker).await?;
             }
@@ -65,8 +65,16 @@ impl Sql {
                         "Container {} doesn't exist, nothing to remove.",
                         CONTAINER_NAME
                     );
-                    return Ok(())
+                    return Ok(());
                 }
+                if status == RUNNING {
+                    println!(
+                        "Container {} is running, it must be stopped first.",
+                        CONTAINER_NAME
+                    );
+                    stop(docker.clone()).await?;
+                }
+
                 remove(docker).await?;
             }
             SqlSubcommands::Status => {
@@ -186,4 +194,23 @@ async fn get_container_status(docker: Docker) -> Result<ContainerStateStatusEnum
 
 async fn init_docker() -> Result<Docker> {
     Docker::connect_with_local_defaults().map_err(|err| eyre::eyre!(err))
+}
+
+async fn get_container_status2(docker: Docker) -> Result<ContainerStateStatusEnum> {
+    let mut filters = HashMap::new();
+    filters.insert("name", vec![CONTAINER_NAME]);
+
+    let inspect = docker
+        .inspect_container(CONTAINER_NAME.as_ref(), None)
+        .await;
+    match inspect {
+        Ok(i) => Ok(i.state.unwrap().status.unwrap()),
+        Err(e) => {
+            if e.to_string().contains("404") {
+                Ok(EMPTY)
+            } else {
+                Err(eyre::eyre!(e))
+            }
+        }
+    }
 }
