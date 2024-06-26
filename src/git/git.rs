@@ -1,4 +1,5 @@
 use std::ffi::OsStr;
+use std::process::Command;
 
 use dialoguer::MultiSelect;
 use eyre::{ContextCompat, Result};
@@ -20,11 +21,36 @@ impl Git {
 }
 
 fn setup() -> Result<()> {
-    check_ssh_keys()
+    let _ = ensure_ssh_keys()?;
+
+    add_keys_github()?;
+
+    Ok(())
 }
 
 #[cfg(target_family = "unix")]
-fn check_ssh_keys() -> Result<()> {
+fn add_keys_github() -> Result<()> {
+
+    Command::new("sh")
+        .arg("-c")
+        .arg("gh ssh-key add ~/.ssh/og-ssh.pub -t og")
+        .output()
+        .expect("failed to upload ssh key to github");
+
+    Ok(())
+}
+
+#[cfg(target_family = "windows")]
+fn add_keys_github(p0: Vec<PublicKey>) -> Result<()> {
+    // Command::new("cmd")
+    //     .args(["/C", "gh ssh-key add ~/.ssh/og-ssh.pub -t og"])
+    //     .output()
+    //     .expect("failed to execute process")
+    todo!("implement ssh key upload on windows")
+}
+
+#[cfg(target_family = "unix")]
+fn ensure_ssh_keys() -> Result<Vec<PublicKey>> {
     let ssh_dir = get_my_home()?
         .context("Could not get home directory")?
         .join(".ssh"); // move this check to the doctor
@@ -57,8 +83,7 @@ fn check_ssh_keys() -> Result<()> {
             .unwrap();
 
         if selection.is_empty() {
-            println!("No git platforms were selected. Abort key creation");
-            return Ok(());
+            return panic!("No git platforms were selected. Abort key creation");
         }
 
         let private_key_ed = PrivateKey::random(&mut OsRng, Algorithm::Ed25519)?;
@@ -70,6 +95,8 @@ fn check_ssh_keys() -> Result<()> {
             .public_key()
             .write_openssh_file(ssh_dir.join("og-ssh.pub").as_path())
             .expect("key could not be created");
+
+        return Ok(vec![private_key_ed.public_key().clone()]);
     } else {
         let selection = MultiSelect::new()
             .with_prompt("Select ssh keys to use")
@@ -78,12 +105,8 @@ fn check_ssh_keys() -> Result<()> {
             .unwrap();
         println!("You chose:");
 
-        for i in selection {
-            println!("{}", public_keys[i].to_string());
-        }
+        return Ok(selection.iter().map(|r| public_keys[*r].clone()).collect());
     }
-
-    Ok(())
 }
 
 #[cfg(target_family = "windows")]
