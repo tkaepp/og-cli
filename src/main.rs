@@ -1,10 +1,14 @@
 use clap::{Parser, Subcommand};
 use eyre::Result;
+
 use og_cli::busybox::{self, BusyboxCommand};
 use og_cli::config;
 use og_cli::fix::{self, FixCommand};
+use og_cli::git;
+use og_cli::git::GitCommand;
 use og_cli::kubernetes::{self, KubernetesCommand};
 use og_cli::mongo_db::{self, MongoDbCommand};
+use og_cli::plugin::Plugin;
 use og_cli::sql;
 use og_cli::sql::SqlCommand;
 
@@ -29,6 +33,7 @@ enum Commands {
     /// Run kubernetes config helpers
     Kubernetes(KubernetesCommand),
     MongoDb(MongoDbCommand),
+    Git(GitCommand),
 }
 
 #[tokio::main]
@@ -42,6 +47,7 @@ async fn main() -> Result<()> {
         Commands::Sql(sql_command) => sql::Sql::run(sql_command).await,
         Commands::Kafka => println!("Kafka has not been implemented yet"),
         Commands::Flink => println!("Flink has not been implemented yet"),
+        Commands::Git(git_command) => git::Git::run(git_command),
         Commands::Fix(fix_command) => {
             fix::Fix::run(fix_command);
         }

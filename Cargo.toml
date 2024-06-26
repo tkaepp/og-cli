@@ -31,6 +31,8 @@ lazy_static = "1.5.0"
 eyre = "0.6.12"
 homedir = "0.2.1"
 reqwest = "0.12.5"
+ssh-key = { version = "0.6.6", features = ["getrandom", "encryption", "crypto", "rsa", "ed25519"] }
+expanduser = "1.2.2"
 
 # The profile that 'cargo dist' will build with
 [profile.dist]

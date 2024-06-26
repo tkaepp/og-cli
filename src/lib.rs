@@ -7,5 +7,7 @@ pub mod kubernetes;
 pub mod mongo_db;
 pub mod plugin;
 pub mod sql;
+pub mod git;
+
 
 pub use config::get_config;
