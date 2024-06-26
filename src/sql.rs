@@ -5,6 +5,7 @@ use bollard::container::{
 use bollard::Docker;
 use clap::{Args, Subcommand};
 use std::collections::HashMap;
+use crate::CONFIG;
 
 pub struct Sql;
 
@@ -110,8 +111,9 @@ async fn restart_container(docker: Docker, container_name: Box<str>) {
 }
 
 async fn create_and_run_container(docker: Docker, config: SqlConfiguration) {
-    // TODO Secret Management
-    let env = vec!["MSSQL_SA_PASSWORD=***", "ACCEPT_EULA=Y"];
+    let pwd = &CONFIG.get().unwrap().sql_password;
+    let formatted_pwd = &format!("MSSQL_SA_PASSWORD={pwd}");
+    let env = vec![formatted_pwd, "ACCEPT_EULA=Y"];
 
     let options = Some(CreateContainerOptions {
         name: config.container_name.clone(),
