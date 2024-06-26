@@ -1,7 +1,10 @@
 use std::ffi::OsStr;
-use std::fs::read_dir;
 
+use clap::builder::TypedValueParser;
+use dialoguer::MultiSelect;
 use expanduser::expanduser;
+use eyre::Result;
+use ssh_key::PublicKey;
 
 use crate::git;
 use crate::git::commands::GitSubCommands;
@@ -23,35 +26,28 @@ fn setup() -> Result<(), String> {
 }
 
 #[cfg(target_family = "unix")]
-fn check_ssh_keys() -> Result<(), String> {
-    let ssh_dir = expanduser("~/.ssh").unwrap(); // move this check to the doctor
-    match read_dir(ssh_dir) {
-        Ok(ssh_dir) => {
-            for entry in ssh_dir {
-                match entry {
-                    Ok(e) => {
-                        match e.path().extension().and_then(OsStr::to_str) {
-                            Some("pub") => {
-                                println!("{}", e.path().to_str().unwrap());
-                            }
-                            _ => {}
-                        }
-                    }
-                    Err(_) => { println!("Error reading a directory entry") }
-                }
-            }
-        }
-        Err(e) => { println!("Error occured {}", e.to_string()) }
+fn check_ssh_keys() -> Result<()> {
+    let ssh_dir = expanduser("~/.ssh")?; // move this check to the doctor
+
+    let public_keys: Vec<PublicKey> = ssh_dir.read_dir()?
+        .filter_map(|r| r.ok())
+        .map(|r| (r.path().extension().and_then(OsStr::to_str).map(|s| s.to_string()), r))
+        .filter(|(extension, _)| extension.as_ref().map(|c| c == "pub").unwrap_or(false))
+        .map(|(_, e)| PublicKey::read_openssh_file(e.path().as_path()))
+        .filter_map(|p| p.ok())
+        .collect();
+
+    let selection = MultiSelect::new()
+        .with_prompt("Select ssh keys to use")
+        .items(&public_keys)
+        .interact()
+        .unwrap();
+    println!("You chose:");
+
+    for i in selection {
+        println!("{}", public_keys[i].to_string());
     }
     Ok(())
-    // ssh_key::public::
-    // let existing_keys = PrivateKey::
-    //
-    // let _ = Select::new()
-    //     .with_prompt("Select cluster to sync")
-    //     .items(&clusters)
-    //     .interact()
-    //     .unwrap();
 }
 
 #[cfg(target_family = "windows")]
