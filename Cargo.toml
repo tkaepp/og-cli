@@ -38,6 +38,7 @@ ssh-key = { version = "0.6.6", features = [
     "rsa",
     "ed25519",
 ] }
+futures-util = "0.3.30"
 
 # The profile that 'cargo dist' will build with
 [profile.dist]
