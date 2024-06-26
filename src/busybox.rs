@@ -3,7 +3,6 @@ use crate::{common_docker::DockerComposeBuilder, plugin::Plugin};
 use clap::{Args, Subcommand};
 use crate::common_docker::DockerCompose;
 use crate::doctor::{DoctorFailure, DoctorSuccess};
-use clap::{Args, Subcommand};
 
 pub struct Busybox;
 
@@ -20,12 +19,12 @@ impl Plugin for Busybox {
         if DockerCompose::is_running() {
             result.insert(result.len(), Ok(DoctorSuccess {
                 message: "Docker daemon is running".into(),
-                plugin: "Busybox".into()
+                plugin: "Busybox".into(),
             }));
         } else {
             result.insert(result.len(), Err(DoctorFailure {
                 message: "Docker daemon is not running".into(),
-                plugin: "Busybox".into()
+                plugin: "Busybox".into(),
             }));
         }
 

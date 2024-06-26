@@ -5,6 +5,7 @@ use dialoguer::MultiSelect;
 use eyre::{ContextCompat, Result};
 use homedir::get_my_home;
 use ssh_key::{Algorithm, LineEnding, PrivateKey, PublicKey};
+use ssh_key::rand_core::OsRng;
 
 use crate::git;
 use crate::git::commands::GitSubCommands;
