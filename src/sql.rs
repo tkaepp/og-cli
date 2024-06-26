@@ -169,7 +169,7 @@ async fn create_and_run_container(docker: Docker) -> Result<()> {
     let mut stream = docker.create_image(image_options, None, None);
 
     while let Some(output) = stream.try_next().await? {
-        println!("{:?}", output);
+        println!("{:?} - {:?}", output.status, output.progress);
     }
 
     let result = docker.create_container(options, creation_config).await?;
