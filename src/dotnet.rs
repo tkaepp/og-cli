@@ -45,16 +45,17 @@ fn dotnet_run(additional_params: Option<String>) -> Result<()> {
             f.split("\n").filter(|l| regex.is_match(l) && !env_regex.is_match(l)))
         .flatten()
         .collect();
-    let launch_settings = filtered
+    let launch_settings: Vec<&str> = filtered
         .iter()
-        .map(|l| regex.captures(*l).unwrap()["lsn"]);
-    filtered.iter().for_each(|f| println!("{}", f));
+        .map(|l| regex.captures_iter(l).map(|c| c.name("lsn").unwrap().as_str()))
+        .flatten()
+        .collect();
     let selected = Select::new()
         .with_prompt("Select launch setting")
-        .items(&filtered)
+        .items(&launch_settings)
         .interact()?;
 
-    println!("{}", filtered[selected]);
+    println!("{}", launch_settings[selected]);
 
     Ok(())
 }
