@@ -7,7 +7,7 @@ use std::{
 
 use eyre::{eyre, Context, ContextCompat, Result};
 use figment::{
-    providers::{Format, Json, Serialized},
+    providers::{Format, Json},
     Figment,
 };
 use homedir::get_my_home;
@@ -20,15 +20,6 @@ const CONFIG_URL: &str =
 pub struct Config {
     pub sql_password: String,
     pub rancher_base_url: String,
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Config {
-            sql_password: "thats_not_it".into(),
-            rancher_base_url: "url".into(),
-        }
-    }
 }
 
 pub static CONFIG: OnceLock<Config> = OnceLock::new();
@@ -48,9 +39,7 @@ pub async fn init_config() -> Result<()> {
             .context("Unable to fetch config, are you connected to the VPN?")?;
     }
 
-    let config: Config = Figment::from(Serialized::defaults(Config::default()))
-        .merge(Json::file(&ogrc))
-        .extract()?;
+    let config: Config = Figment::new().merge(Json::file(&ogrc)).extract()?;
     CONFIG
         .set(config)
         .map_err(|_| eyre!("Failed to set config"))?;
