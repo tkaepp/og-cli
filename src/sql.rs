@@ -1,12 +1,16 @@
-use crate::plugin::Plugin;
+use std::collections::HashMap;
+
 use bollard::container::{
-    Config, CreateContainerOptions, ListContainersOptions, RestartContainerOptions,
+    Config, CreateContainerOptions, RestartContainerOptions, StartContainerOptions,
 };
+use bollard::models::ContainerStateStatusEnum::{EMPTY, EXITED, RUNNING};
+use bollard::models::{ContainerStateStatusEnum, HostConfig, PortBinding};
 use bollard::Docker;
 use clap::{Args, Subcommand};
-use std::collections::HashMap;
-use crate::CONFIG;
+
 use crate::doctor::{DoctorFailure, DoctorSuccess};
+use crate::plugin::Plugin;
+use crate::CONFIG;
 
 pub struct Sql;
 
@@ -21,19 +25,6 @@ impl Plugin for Sql {
         Vec::new()
     }
 }
-struct SqlConfiguration {
-    container_name: Box<str>,
-    volume_name: Box<str>,
-}
-
-impl SqlConfiguration {
-    fn init_sql_config() -> SqlConfiguration {
-        SqlConfiguration {
-            container_name: "mssql-local".into(),
-            volume_name: "sql-data".into(),
-        }
-    }
-}
 
 #[derive(Subcommand, Debug)]
 pub enum SqlSubcommands {
@@ -44,44 +35,37 @@ pub enum SqlSubcommands {
 impl Sql {
     pub async fn run(cli: SqlCommand) {
         let sql_cmd = cli.command;
+        let config = SqlConfiguration::init_sql_config();
+        let docker = Docker::connect_with_local_defaults().unwrap();
+        let status = get_container_status(docker.clone(), config.clone()).await;
+
         match sql_cmd {
             SqlSubcommands::Start => {
-                println!("Starting Sql");
-                start().await;
+                if status == RUNNING {
+                    println!(
+                        "Container {} is already running, nothing to do.",
+                        config.container_name
+                    );
+                    return;
+                }
+                start(docker, config, status).await;
             }
             SqlSubcommands::Stop => {
-                println!("Stopping Sql");
-                stop().await;
+                if status == EXITED {
+                    println!(
+                        "Container {} is already stopped, nothing to do.",
+                        config.container_name
+                    );
+                    return;
+                }
+                stop(docker, config).await;
             }
         }
     }
 }
 
-async fn start() {
-    let config = SqlConfiguration::init_sql_config();
-    let docker = Docker::connect_with_local_defaults().unwrap();
-    let mut filters = HashMap::new();
-    filters.insert("name", vec![config.container_name.as_ref()]);
-
-    let options = Some(ListContainersOptions {
-        all: true, // This will only return running container
-        filters,
-        ..Default::default()
-    });
-    let containers = docker.list_containers(options).await.unwrap();
-
-    if containers
-        .iter()
-        .any(|c| c.state == Some(String::from("running")))
-    {
-        println!(
-            "Container {} is already running, nothing to do.",
-            config.container_name
-        );
-        return;
-    }
-
-    if containers.is_empty() {
+async fn start(docker: Docker, config: SqlConfiguration, status: ContainerStateStatusEnum) {
+    if status == EMPTY {
         println!(
             "Container {} doesn't exist, container will be created and started...",
             config.container_name
@@ -90,37 +74,19 @@ async fn start() {
         return;
     }
 
-    if containers
-        .iter()
-        .any(|c| c.state == Some(String::from("exited")))
-    {
-        println!(
-            "Container {} exists but was stopped, container will restart...",
-            config.container_name
-        );
-        restart_container(docker, config.container_name.clone()).await;
-    }
+    println!(
+        "Container {} exists but was stopped, container will restart...",
+        config.container_name
+    );
+    restart_container(docker, config.container_name.clone()).await;
 }
 
-async fn stop() {
-    let config = SqlConfiguration::init_sql_config();
-    let docker = Docker::connect_with_local_defaults().unwrap();
-    let mut filters = HashMap::new();
-    filters.insert("name", vec![config.container_name.as_ref()]);
-
-    let options = Some(ListContainersOptions{
-        all: true, // This will only return running container
-        filters,
-        ..Default::default()
-    });
-    let containers = docker.list_containers(options).await.unwrap();
-
-    if containers.iter().any(|c| c.state == Some(String::from("running"))) {
-        println!("Stopping container {}", config.container_name);
-        docker.stop_container(config.container_name.as_ref(), None).await.unwrap();
-    } else {
-        println!("Container {} is not running, nothing to do.", config.container_name);
-    }
+async fn stop(docker: Docker, config: SqlConfiguration) {
+    println!("Stopping container {}...", config.container_name);
+    let _ = docker
+        .stop_container(config.container_name.as_ref(), None)
+        .await;
+    println!("Container {} stopped ", config.container_name);
 }
 
 async fn restart_container(docker: Docker, container_name: Box<str>) {
@@ -136,19 +102,91 @@ async fn restart_container(docker: Docker, container_name: Box<str>) {
 async fn create_and_run_container(docker: Docker, config: SqlConfiguration) {
     let pwd = &CONFIG.get().unwrap().sql_password;
     let formatted_pwd = &format!("MSSQL_SA_PASSWORD={pwd}");
-    let env = vec![formatted_pwd, "ACCEPT_EULA=Y"];
+    let env = vec![formatted_pwd.to_string(), "ACCEPT_EULA=Y".to_string()];
+
+    let port_bindings = {
+        let mut map = HashMap::new();
+        map.insert(
+            format!("{}/tcp", config.port),
+            Some(vec![PortBinding {
+                host_ip: Some("0.0.0.0".to_string()),
+                host_port: Some(config.port.to_string()),
+            }]),
+        );
+        map
+    };
 
     let options = Some(CreateContainerOptions {
         name: config.container_name.clone(),
         platform: None,
     });
 
-    let config = Config {
-        image: Some("mcr.microsoft.com/azure-sql-edge:latest"),
+    let creation_config = Config {
+        image: Some(config.image_name.into_string()),
         env: Some(env),
+        host_config: Some(HostConfig {
+            binds: Some(vec![config.volume_binding.to_string()]),
+            port_bindings: Some(port_bindings),
+            ..Default::default()
+        }),
         ..Default::default()
     };
 
-    let result = docker.create_container(options, config).await.unwrap();
+    let result = docker
+        .create_container(options, creation_config)
+        .await
+        .unwrap();
+    docker
+        .start_container(
+            &config.container_name.clone(),
+            None::<StartContainerOptions<String>>,
+        )
+        .await
+        .unwrap();
     println!("Container {} created and started", result.id);
+}
+
+async fn get_container_status(
+    docker: Docker,
+    config: SqlConfiguration,
+) -> ContainerStateStatusEnum {
+    let mut filters = HashMap::new();
+    filters.insert("name", vec![config.container_name.as_ref()]);
+
+    let inspect = docker
+        .inspect_container(config.container_name.as_ref(), None)
+        .await;
+    match inspect {
+        Ok(_) => inspect.unwrap().state.unwrap().status.unwrap(),
+        Err(_) => EMPTY,
+    }
+}
+
+struct SqlConfiguration {
+    container_name: Box<str>,
+    volume_binding: Box<str>,
+    image_name: Box<str>,
+    port: i32,
+}
+
+impl Clone for SqlConfiguration {
+    fn clone(&self) -> SqlConfiguration {
+        SqlConfiguration {
+            container_name: self.container_name.clone(),
+            volume_binding: self.volume_binding.clone(),
+            image_name: self.image_name.clone(),
+            port: self.port,
+        }
+    }
+}
+
+impl SqlConfiguration {
+    fn init_sql_config() -> SqlConfiguration {
+        SqlConfiguration {
+            container_name: "mssql-local".into(),
+            image_name: "mcr.microsoft.com/azure-sql-edge:latest".into(),
+            volume_binding: "sql-data:/var/opt/mssql:rw".into(),
+            port: 1433,
+        }
+    }
 }
