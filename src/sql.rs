@@ -6,6 +6,7 @@ use bollard::Docker;
 use clap::{Args, Subcommand};
 use std::collections::HashMap;
 use crate::CONFIG;
+use crate::doctor::{DoctorFailure, DoctorSuccess};
 
 pub struct Sql;
 
@@ -16,8 +17,8 @@ pub struct SqlCommand {
 }
 
 impl Plugin for Sql {
-    fn doctor(&self) {
-        println!("Running the Sql doctor");
+    fn doctor(&self) -> Vec<Result<DoctorSuccess, DoctorFailure>> {
+        Vec::new()
     }
 }
 struct SqlConfiguration {

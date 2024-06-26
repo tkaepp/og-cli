@@ -4,6 +4,7 @@ use clap::{Args, Subcommand};
 use dialoguer::Select;
 use keyring::{Entry,Result};
 use rancher::RancherClient;
+use crate::doctor::{DoctorFailure, DoctorSuccess};
 
 const KEYRING_SERVICE_ID: &str = "dg_cli_plugin_kube";
 const KEYRING_KEY: &str = "rancher_token";
@@ -29,8 +30,8 @@ pub struct KubernetesCommand {
 }
 
 impl Plugin for Kubernetes {
-    fn doctor(&self) {
-        println!("Ich bein ein Text");
+    fn doctor(&self) -> Vec<std::result::Result<DoctorSuccess, DoctorFailure>> {
+        Vec::new()
     }
 }
 

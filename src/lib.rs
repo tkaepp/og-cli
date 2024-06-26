@@ -6,5 +6,5 @@ pub mod kubernetes;
 pub mod mongo_db;
 pub mod plugin;
 pub mod sql;
-
 pub use config::CONFIG;
+pub mod doctor;

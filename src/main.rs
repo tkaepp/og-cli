@@ -7,7 +7,6 @@ use og_cli::config::Config;
 use og_cli::fix::{self, FixCommand};
 use og_cli::kubernetes::{self, KubernetesCommand};
 use og_cli::mongo_db::{self, MongoDbCommand};
-use og_cli::plugin::Plugin;
 use og_cli::sql;
 use og_cli::sql::SqlCommand;
 use og_cli::CONFIG;
@@ -58,16 +57,7 @@ async fn main() -> Result<()> {
         Commands::Fix(fix_command) => {
             fix::Fix::run(fix_command);
         }
-        Commands::Doctor => {
-            let plugins: Vec<Box<dyn Plugin>> = vec![
-                Box::new(fix::Fix),
-                Box::new(busybox::Busybox),
-                Box::new(mongo_db::MongoDb),
-            ];
-            for plugin in &plugins {
-                plugin.doctor();
-            }
-        }
+        Commands::Doctor => og_cli::doctor::run(),
         Commands::Kubernetes(kubernetes_command) => {
             kubernetes::Kubernetes::run(kubernetes_command).await
         }
@@ -75,3 +65,5 @@ async fn main() -> Result<()> {
 
     Ok(())
 }
+
+
