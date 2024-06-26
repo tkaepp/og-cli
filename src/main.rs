@@ -7,6 +7,7 @@ use og_cli::dotnet::{self, DotnetCommand};
 use og_cli::fix::{self, FixCommand};
 use og_cli::git;
 use og_cli::git::GitCommand;
+use og_cli::graphql::{GraphQl, GraphQlCommand};
 use og_cli::kubernetes::{self, KubernetesCommand};
 use og_cli::mongo_db::{self, MongoDbCommand};
 use og_cli::sql;
@@ -34,6 +35,8 @@ enum Commands {
     #[clap(name = "mongodb")]
     MongoDb(MongoDbCommand),
     Git(GitCommand),
+    #[clap(name = "graphql")]
+    GraphQl(GraphQlCommand),
 }
 
 #[tokio::main]
@@ -53,6 +56,9 @@ async fn main() -> Result<()> {
         Commands::Doctor => og_cli::doctor::run(),
         Commands::Kubernetes(kubernetes_command) => {
             kubernetes::Kubernetes::run(kubernetes_command).await
+        }
+        Commands::GraphQl(graphql_command) => {
+            GraphQl::run(graphql_command)?;
         }
     }
 
