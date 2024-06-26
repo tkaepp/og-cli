@@ -19,12 +19,12 @@ impl Plugin for Busybox {
         if DockerCompose::is_running() {
             result.insert(result.len(), Ok(DoctorSuccess {
                 message: "Docker daemon is running".into(),
-                plugin: "Busybox".into()
+                plugin: "Busybox".into(),
             }));
         } else {
             result.insert(result.len(), Err(DoctorFailure {
                 message: "Docker daemon is not running".into(),
-                plugin: "Busybox".into()
+                plugin: "Busybox".into(),
             }));
         }
 

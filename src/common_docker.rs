@@ -196,7 +196,10 @@ impl Service {
             Some(volumes) => {
                 service_vec.push(indent(String::from("volumes:")));
                 for volume in volumes.iter() {
-                    service_vec.push(indent(format!("- {}:{}:{}", volume.volume_name, volume.bind, volume.mode)))
+                    service_vec.push(indent(format!(
+                        "- {}:{}:{}",
+                        volume.volume_name, volume.bind, volume.mode
+                    )))
                 }
             }
             None => (),

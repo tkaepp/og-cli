@@ -7,7 +7,6 @@ pub struct GitCommand {
     pub command: GitSubCommands,
 }
 
-
 #[derive(Subcommand, Debug)]
 pub enum GitSubCommands {
     /// Setup your local git config to use ssh and a seperate .gitconfig for your work projects
