@@ -46,16 +46,20 @@ fn get_projects_with_launch_settings() -> Result<Vec<ProjectsWithLaunchSettings>
         .into_iter()
         .map(|p| {
             let path = p?;
-            let settings = get_launch_setting_names(&path)?;
-            let o = ProjectsWithLaunchSettings {
-                path_to_csproj: path,
-                launch_settings: settings,
-            };
-            Ok(o)
+            let settings = get_launch_setting_names(&path);
+            Ok((path, settings))
+        })
+        .filter(|l| l.as_ref().is_ok_and(|m| m.1.is_ok()))
+        .map(|l| {
+            let k = l.unwrap();
+            ProjectsWithLaunchSettings {
+                path_to_csproj: k.0,
+                launch_settings: k.1.unwrap(),
+            }
         })
         .collect();
 
-    g
+    Ok(g)
 }
 
 fn get_launch_setting_names(project_path: &Path) -> Result<Vec<String>> {
