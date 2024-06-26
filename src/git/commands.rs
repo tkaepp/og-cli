@@ -3,7 +3,8 @@ use clap::{Args, Subcommand};
 #[derive(Args, Debug)]
 pub struct GitCommand {
     #[command(subcommand)]
-    command: GitSubCommands,
+    // if this is in a seperate file it needs to be public
+    pub command: GitSubCommands,
 }
 
 

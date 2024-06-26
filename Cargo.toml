@@ -27,6 +27,7 @@ tokio = "1.38.0"
 dialoguer = "0.11.0"
 lazy_static = "1.5.0"
 eyre = "0.6.12"
+ssh-key = "0.6.6"
 
 # The profile that 'cargo dist' will build with
 [profile.dist]
