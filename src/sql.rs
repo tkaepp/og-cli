@@ -1,15 +1,16 @@
 use std::collections::HashMap;
 
+use crate::get_config;
 use bollard::container::{
     Config, CreateContainerOptions, RestartContainerOptions, StartContainerOptions,
 };
+use bollard::image::CreateImageOptions;
 use bollard::models::ContainerStateStatusEnum::{EMPTY, EXITED, RUNNING};
 use bollard::models::{ContainerStateStatusEnum, HostConfig, PortBinding};
 use bollard::Docker;
 use clap::{Args, Subcommand};
 use eyre::Result;
-
-use crate::get_config;
+use futures_util::TryStreamExt;
 
 pub struct Sql;
 
@@ -158,6 +159,18 @@ async fn create_and_run_container(docker: Docker) -> Result<()> {
         }),
         ..Default::default()
     };
+
+    let image_options = Some(CreateImageOptions {
+        from_image: IMAGE_NAME,
+        tag: "latest",
+        ..Default::default()
+    });
+
+    let mut stream = docker.create_image(image_options, None, None);
+
+    while let Some(output) = stream.try_next().await? {
+        println!("{:?}", output);
+    }
 
     let result = docker.create_container(options, creation_config).await?;
 
