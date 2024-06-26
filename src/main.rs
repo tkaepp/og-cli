@@ -31,6 +31,7 @@ enum Commands {
     Doctor,
     /// Run kubernetes config helpers
     Kubernetes(KubernetesCommand),
+    #[clap(name = "mongodb")]
     MongoDb(MongoDbCommand),
     Git(GitCommand),
 }
