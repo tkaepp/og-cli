@@ -25,6 +25,7 @@ keyring = "2.3.3"
 rancher = { git = "https://github.com/dannyyy/rancher-rs.git" }
 tokio = "1.38.0"
 dialoguer = "0.11.0"
+lazy_static = "1.5.0"
 
 # The profile that 'cargo dist' will build with
 [profile.dist]

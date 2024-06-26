@@ -1,4 +1,3 @@
-
 use clap::{Parser, Subcommand};
 use figment::providers::{Format, Json, Serialized};
 use figment::Figment;
@@ -10,6 +9,7 @@ use og_cli::mongo_db::{self, MongoDbCommand};
 use og_cli::plugin::Plugin;
 use og_cli::sql;
 use og_cli::sql::SqlCommand;
+use og_cli::CONFIG;
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
@@ -42,7 +42,11 @@ async fn main() {
         .merge(Json::file("config.json"))
         .extract()
         .unwrap();
-    println!("SQL container password: {}", config.sql_password);
+    CONFIG.set(config).unwrap();
+    println!(
+        "SQL container password: {}",
+        CONFIG.get().unwrap().sql_password
+    );
 
     match cli.command {
         Commands::Busybox(busybox_command) => busybox::Busybox::run(busybox_command),

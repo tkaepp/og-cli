@@ -1,6 +1,8 @@
+use std::sync::OnceLock;
+
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
     pub sql_password: String,
 }
@@ -12,3 +14,5 @@ impl Default for Config {
         }
     }
 }
+
+pub static CONFIG: OnceLock<Config> = OnceLock::new();
