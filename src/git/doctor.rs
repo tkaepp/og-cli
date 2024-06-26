@@ -2,7 +2,7 @@ use std::process::Command;
 
 use crate::doctor::{DoctorFailure, DoctorSuccess};
 use crate::git::Git;
-use crate::plugin::Plugin;
+use crate::plugin::{DoctorFix, Plugin};
 
 impl Plugin for Git {
     fn doctor(&self) -> Vec<Result<DoctorSuccess, DoctorFailure>> {
@@ -13,7 +13,25 @@ impl Plugin for Git {
             Self::git_config_check(),
         ]
     }
+}
 
+impl DoctorFix for Git {
+    fn apply_fix(&self) -> Vec<Result<DoctorSuccess, DoctorFailure>> {
+        let entry = "push.autoSetupRemote";
+        let mut config = git2::Config::open_default().expect("git config lookup failed!");
+
+        let result = config
+            .set_bool(entry, true)
+            .map(|x| DoctorSuccess {
+                message: format!("fix executed for {}", "push.autoSetupRemote"),
+                plugin: "git - config".into(),
+            })
+            .map_err(|x| DoctorFailure {
+                message: format!("fix failed for {}", "push.autoSetupRemote"),
+                plugin: "git - config".into(),
+            });
+        vec![result]
+    }
 }
 
 impl Git {
@@ -21,18 +39,18 @@ impl Git {
         let entry = "push.autoSetupRemote";
         let config = git2::Config::open_default().expect("git config lookup failed!");
         match config.get_bool(entry) {
-            Ok(c) if c == true => { Ok(DoctorSuccess {
+            Ok(c) if c == true => Ok(DoctorSuccess {
                 message: format!("{} is configured correct with {} ", entry, c.to_string()),
                 plugin: "git - config".into(),
-            }) }
-            Ok(c) if c == false => { Err(DoctorFailure {
+            }),
+            Ok(c) if c == false => Err(DoctorFailure {
                 message: format!("{} is not configured wrong with {}", entry, c.to_string()),
                 plugin: "git - config".into(),
-            }) }
-            _ => { Err(DoctorFailure {
+            }),
+            _ => Err(DoctorFailure {
                 message: format!("{} is not configured wrong.", entry),
                 plugin: "git - config".into(),
-            })}
+            }),
         }
     }
 
@@ -40,13 +58,17 @@ impl Git {
         let res = match Command::new(command)
             .stdout(std::process::Stdio::null())
             .stderr(std::process::Stdio::null())
-            .spawn() {
+            .spawn()
+        {
             Ok(_) => Ok(DoctorSuccess {
                 message: format!("{} is installed", command),
                 plugin: command.to_string(),
             }),
             Err(_) => Err(DoctorFailure {
-                message: format!("tool {} is not available. Make sure it is in the PATH", command),
+                message: format!(
+                    "tool {} is not available. Make sure it is in the PATH",
+                    command
+                ),
                 plugin: command.to_string(),
             }),
         };

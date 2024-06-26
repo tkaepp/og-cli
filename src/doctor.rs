@@ -1,5 +1,13 @@
+use clap::Args;
+
 use crate::{busybox, fix, git, kubernetes, mongo_db};
-use crate::plugin::Plugin;
+use crate::plugin::{DoctorFix, Plugin};
+
+#[derive(Args, Debug)]
+pub struct DoctorCommand {
+    #[arg(short, long)]
+    apply_fixes: bool,
+}
 
 pub struct DoctorSuccess {
     pub message: String,
@@ -12,15 +20,25 @@ pub struct DoctorFailure {
     pub plugin: String,
 }
 
-pub fn run() {
+pub fn run(dr_command: DoctorCommand) {
+
+    match dr_command.apply_fixes {
+        false => {}
+        true => { println!("apply fixes on failing checks")}
+    }
+
+    let plugins_with_fixes: Vec<(Box<dyn DoctorFix>)> = vec![
+        Box::new(git::Git),
+    ];
+
     let plugins: Vec<Box<dyn Plugin>> = vec![
         Box::new(fix::Fix),
         Box::new(busybox::Busybox),
         Box::new(mongo_db::MongoDb),
         Box::new(kubernetes::Kubernetes),
-        Box::new(git::Git),
     ];
     let mut results = Vec::new();
+
     for plugin in &plugins {
         results.append(&mut plugin.doctor());
     }
@@ -29,6 +47,24 @@ pub fn run() {
         match result {
             Ok(res) => { print!("✅ {}: {}\n", res.plugin, res.message) }
             Err(res) => { print!("❌ {}: {}\n", res.plugin, res.message) }
+        }
+    }
+
+
+    for plugin in &plugins_with_fixes {
+        results.append(&mut plugin.doctor());
+        plugin.apply_fix();
+        results.append(&mut plugin.doctor());
+    }
+
+    for result in results.iter() {
+        match result {
+            Ok(res) => { print!("✅ {}: {}\n", res.plugin, res.message) }
+            Err(res) if dr_command.apply_fixes == false => { print!("❌ {}: {}\n", res.plugin, res.message) }
+            Err(res) if dr_command.apply_fixes == true => {
+                print!("❌ {}: {}\n", res.plugin, res.message);
+            }
+            _ => {}
         }
     }
 }

@@ -3,6 +3,7 @@ use eyre::Result;
 
 use og_cli::busybox::{self, BusyboxCommand};
 use og_cli::config;
+use og_cli::doctor::DoctorCommand;
 use og_cli::dotnet::{self, DotnetCommand};
 use og_cli::fix::{self, FixCommand};
 use og_cli::git;
@@ -29,7 +30,7 @@ enum Commands {
     Sql(SqlCommand),
     Fix(FixCommand),
     Dotnet(DotnetCommand),
-    Doctor,
+    Doctor(DoctorCommand),
     /// Run kubernetes config helpers
     Kubernetes(KubernetesCommand),
     #[clap(name = "mongodb")]
@@ -53,7 +54,7 @@ async fn main() -> Result<()> {
         Commands::Fix(fix_command) => {
             fix::Fix::run(fix_command)?;
         }
-        Commands::Doctor => og_cli::doctor::run(),
+        Commands::Doctor(dr_command) => og_cli::doctor::run(dr_command),
         Commands::Kubernetes(kubernetes_command) => {
             kubernetes::Kubernetes::run(kubernetes_command).await?
         }
