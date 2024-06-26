@@ -2,9 +2,8 @@ use std::ffi::OsStr;
 
 use clap::builder::TypedValueParser;
 use dialoguer::MultiSelect;
-use expanduser::expanduser;
-use eyre::Result;
-use ssh_key::rand_core::OsRng;
+use eyre::{ContextCompat, Result};
+use homedir::get_my_home;
 use ssh_key::{Algorithm, LineEnding, PrivateKey, PublicKey};
 
 use crate::git;
@@ -26,7 +25,9 @@ fn setup() -> Result<()> {
 
 #[cfg(target_family = "unix")]
 fn check_ssh_keys() -> Result<()> {
-    let ssh_dir = expanduser("~/.ssh2")?; // move this check to the doctor
+    let ssh_dir = get_my_home()?
+        .context("Could not get home directory")?
+        .join(".ssh"); // move this check to the doctor
 
     let public_keys: Vec<PublicKey> = ssh_dir
         .read_dir()?
@@ -86,4 +87,6 @@ fn check_ssh_keys() -> Result<()> {
 }
 
 #[cfg(target_family = "windows")]
-fn check_ssh_keys() {}
+fn check_ssh_keys() -> Result<()> {
+    Ok(())
+}
