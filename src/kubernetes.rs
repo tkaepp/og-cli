@@ -1,12 +1,11 @@
 use std::fmt::{Display, Formatter};
-use crate::{plugin::Plugin};
+use crate::{get_config, plugin::Plugin};
 use clap::{Args, Subcommand};
 use dialoguer::{MultiSelect};
 use keyring::{Entry, Result};
 use kube::config::Kubeconfig;
 use rancher::RancherClient;
 use crate::doctor::{DoctorFailure, DoctorSuccess};
-use crate::CONFIG;
 
 const KEYRING_SERVICE_ID: &str = "dg_cli_plugin_kube";
 const KEYRING_KEY: &str = "rancher_token";
@@ -130,7 +129,7 @@ fn get_rancher_token() -> Result<String> {
 }
 
 async fn get_rancher_clusters(rancher_token: String) -> Vec<Cluster> {
-    let rancher_client = RancherClient::new(rancher_token, String::from(&CONFIG.get().unwrap().rancher_base_url));
+    let rancher_client = RancherClient::new(rancher_token, String::from(&get_config().rancher_base_url));
     let clusters_result = rancher_client.clusters().await;
 
     if let Ok(clusters) = clusters_result {

@@ -8,9 +8,9 @@ use bollard::models::{ContainerStateStatusEnum, HostConfig, PortBinding};
 use bollard::Docker;
 use clap::{Args, Subcommand};
 
+use crate::get_config;
 use crate::doctor::{DoctorFailure, DoctorSuccess};
 use crate::plugin::Plugin;
-use crate::CONFIG;
 
 pub struct Sql;
 
@@ -100,7 +100,7 @@ async fn restart_container(docker: Docker, container_name: Box<str>) {
 }
 
 async fn create_and_run_container(docker: Docker, config: SqlConfiguration) {
-    let pwd = &CONFIG.get().unwrap().sql_password;
+    let pwd = &get_config().sql_password;
     let formatted_pwd = &format!("MSSQL_SA_PASSWORD={pwd}");
     let env = vec![formatted_pwd.to_string(), "ACCEPT_EULA=Y".to_string()];
 

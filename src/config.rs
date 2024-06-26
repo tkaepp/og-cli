@@ -22,8 +22,6 @@ pub struct Config {
     pub rancher_base_url: String,
 }
 
-pub static CONFIG: OnceLock<Config> = OnceLock::new();
-
 pub async fn init_config() -> Result<()> {
     let og_dir = get_my_home()?
         .context("Could not get home directory")?
@@ -57,3 +55,9 @@ async fn download_config(destination: &Path) -> Result<()> {
 
     Ok(())
 }
+
+pub fn get_config() -> &'static Config {
+    CONFIG.get().expect("Config not initialized")
+}
+
+pub static CONFIG: OnceLock<Config> = OnceLock::new();
