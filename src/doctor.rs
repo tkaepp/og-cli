@@ -1,5 +1,5 @@
+use crate::{busybox, fix, git, kubernetes, mongo_db};
 use crate::plugin::Plugin;
-use crate::{busybox, fix, kubernetes, mongo_db};
 
 pub struct DoctorSuccess {
     pub message: String,
@@ -18,6 +18,7 @@ pub fn run() {
         Box::new(busybox::Busybox),
         Box::new(mongo_db::MongoDb),
         Box::new(kubernetes::Kubernetes),
+        Box::new(git::Git),
     ];
     let mut results = Vec::new();
     for plugin in &plugins {

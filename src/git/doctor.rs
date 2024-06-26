@@ -16,7 +16,10 @@ impl Plugin for Git {
 
 impl Git {
     fn is_command_in_path(command: &str) -> Result<DoctorSuccess, DoctorFailure> {
-        let res = match Command::new(command).spawn() {
+        let res = match Command::new(command)
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .spawn() {
             Ok(_) => Ok(DoctorSuccess {
                 message: format!("{} is installed", command),
                 plugin: command.to_string(),
