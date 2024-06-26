@@ -51,6 +51,7 @@ impl Sql {
             }
             SqlSubcommands::Stop => {
                 println!("Stopping Sql");
+                stop().await;
             }
         }
     }
@@ -98,6 +99,27 @@ async fn start() {
             config.container_name
         );
         restart_container(docker, config.container_name.clone()).await;
+    }
+}
+
+async fn stop() {
+    let config = SqlConfiguration::init_sql_config();
+    let docker = Docker::connect_with_local_defaults().unwrap();
+    let mut filters = HashMap::new();
+    filters.insert("name", vec![config.container_name.as_ref()]);
+
+    let options = Some(ListContainersOptions{
+        all: true, // This will only return running container
+        filters,
+        ..Default::default()
+    });
+    let containers = docker.list_containers(options).await.unwrap();
+
+    if containers.iter().any(|c| c.state == Some(String::from("running"))) {
+        println!("Stopping container {}", config.container_name);
+        docker.stop_container(config.container_name.as_ref(), None).await.unwrap();
+    } else {
+        println!("Container {} is not running, nothing to do.", config.container_name);
     }
 }
 
