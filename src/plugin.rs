@@ -1,3 +1,5 @@
+use crate::doctor::{DoctorFailure, DoctorSuccess};
+
 pub trait Plugin {
-    fn doctor(&self);
+    fn doctor(&self) -> Vec<Result<DoctorSuccess, DoctorFailure>>;
 }

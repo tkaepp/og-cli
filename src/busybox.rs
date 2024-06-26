@@ -1,6 +1,7 @@
 use crate::{common_docker::DockerComposeBuilder, plugin::Plugin};
 
 use clap::{Args, Subcommand};
+use crate::doctor::{DoctorFailure, DoctorSuccess};
 
 pub struct Busybox;
 
@@ -11,8 +12,8 @@ pub struct BusyboxCommand {
 }
 
 impl Plugin for Busybox {
-    fn doctor(&self) {
-        println!("Running the busybox doctor");
+    fn doctor(&self) -> Vec<Result<DoctorSuccess, DoctorFailure>> {
+        Vec::new()
     }
 }
 

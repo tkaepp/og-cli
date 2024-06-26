@@ -1,5 +1,6 @@
 use crate::plugin::Plugin;
 use clap::{Args, Subcommand};
+use crate::doctor::{DoctorFailure, DoctorSuccess};
 
 pub struct Fix;
 
@@ -18,8 +19,8 @@ impl Fix {
 }
 
 impl Plugin for Fix {
-    fn doctor(&self) {
-        println!("Running the fix doctor");
+    fn doctor(&self) -> Vec<Result<DoctorSuccess, DoctorFailure>> {
+        Vec::new()
     }
 }
 
