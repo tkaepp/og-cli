@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use eyre::Result;
 use figment::providers::{Format, Json, Serialized};
 use figment::Figment;
 use og_cli::busybox::{self, BusyboxCommand};
@@ -35,7 +36,7 @@ enum Commands {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     let config: Config = Figment::from(Serialized::defaults(Config::default()))
@@ -71,4 +72,6 @@ async fn main() {
             kubernetes::Kubernetes::run(kubernetes_command).await
         }
     }
+
+    Ok(())
 }

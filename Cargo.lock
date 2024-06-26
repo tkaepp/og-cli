@@ -1462,6 +1462,7 @@ dependencies = [
  "bollard",
  "clap",
  "dialoguer",
+ "eyre",
  "figment",
  "keyring",
  "lazy_static",
