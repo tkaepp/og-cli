@@ -1,13 +1,14 @@
-use crate::doctor::{DoctorFailure, DoctorSuccess};
-use crate::kubernetes::kube_config;
-use crate::kubernetes::kube_config::*;
-use crate::{get_config, plugin::Plugin};
+use std::fmt::{Display, Formatter};
+
 use clap::{Args, Subcommand};
 use colored::Colorize;
 use dialoguer::MultiSelect;
 use keyring::{Entry, Result};
 use rancher::RancherClient;
-use std::fmt::{Display, Formatter};
+
+use crate::get_config;
+use crate::kubernetes::kube_config;
+use crate::kubernetes::kube_config::*;
 
 const KEYRING_SERVICE_ID: &str = "dg_cli_plugin_kube";
 const KEYRING_KEY: &str = "rancher_token";
@@ -65,12 +66,6 @@ pub enum KubernetesSubcommands {
     Sync,
     /// Run random stuff to test
     Test,
-}
-
-impl Plugin for Kubernetes {
-    fn doctor(&self) -> Vec<std::result::Result<DoctorSuccess, DoctorFailure>> {
-        Vec::new()
-    }
 }
 
 impl Kubernetes {

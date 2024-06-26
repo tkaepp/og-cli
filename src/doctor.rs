@@ -1,5 +1,5 @@
 use crate::plugin::Plugin;
-use crate::{busybox, fix, mongo_db};
+use crate::{busybox, fix, kubernetes, mongo_db};
 
 pub struct DoctorSuccess {
     pub message: String,
@@ -17,6 +17,7 @@ pub fn run() {
         Box::new(fix::Fix),
         Box::new(busybox::Busybox),
         Box::new(mongo_db::MongoDb),
+        Box::new(kubernetes::Kubernetes),
     ];
     let mut results = Vec::new();
     for plugin in &plugins {
@@ -25,7 +26,7 @@ pub fn run() {
 
     for result in results.iter() {
         match result {
-            Ok(res) => { print!("✅ {}: {}\n", res.plugin, res.message) },
+            Ok(res) => { print!("✅ {}: {}\n", res.plugin, res.message) }
             Err(res) => { print!("❌ {}: {}\n", res.plugin, res.message) }
         }
     }

@@ -4,3 +4,4 @@ pub use kubernetes::KubernetesCommand;
 
 mod kube_config;
 mod kubernetes;
+mod doctor;
