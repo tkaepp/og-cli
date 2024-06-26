@@ -4,6 +4,8 @@ use crate::doctor::{DoctorFailure, DoctorSuccess};
 use std::env;
 use std::fs;
 use std::process::Command;
+use homedir::get_my_home;
+use eyre::{eyre, Context, ContextCompat, Result};
 
 pub struct Fix;
 
@@ -14,27 +16,30 @@ pub struct FixCommand {
 }
 
 impl Fix {
-    pub fn run(cli: FixCommand) {
+    pub fn run(cli: FixCommand) -> Result<()> {
         match cli.command {
-            FixSubcommands::Hello { name } => println!("Hi {name}"),
             FixSubcommands::Reinstall => 
             { 
                 println!("Reinstalling Dg Cli");
                 let os = env::consts::OS;
                 match os{
                     "macos"=>{
-                        Command::new("rm")
-                            .arg("-rf ~/.dgrc")
-                            .status()
-                            .expect("rm does not work");
-                        Command::new("rm")
-                            .arg("-rf ~/.dg-cli")
-                            .status()
-                            .expect("rm does not work");
-                        Command::new("rm")
-                            .arg("-rf ~/.local/bin/dg")
-                            .status()
-                            .expect("rm does not work");
+                        let rc_dir = get_my_home()?
+                            .context("Could not get home directory")?
+                            .join(".dgrc");
+                        fs::remove_file(rc_dir);
+                        let cli_dir = get_my_home()?
+                            .context("Could not get home directory")?
+                            .join(".dg-cli");
+                        fs::remove_dir_all(cli_dir);
+                        let localdg_dir = get_my_home()?
+                            .context("Could not get home directory")?
+                            .join(".local/bin/dg");
+                        fs::remove_dir_all(localdg_dir);
+                        let pipx_dir = get_my_home()?
+                            .context("Could not get home directory")?
+                            .join(".local/pipx");
+                        fs::remove_dir_all(pipx_dir);
                         println!("attempting to reinstall pipx");
                         let uninstallstatus = Command::new("brew")
                             .arg("uninstall")
@@ -86,6 +91,7 @@ impl Fix {
                 }
             },
         }
+        Ok(())
     }
 }
 
@@ -97,6 +103,5 @@ impl Plugin for Fix {
 
 #[derive(Subcommand, Debug)]
 enum FixSubcommands {
-    Hello { name: String },
     Reinstall,
 }
