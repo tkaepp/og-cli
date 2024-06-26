@@ -30,6 +30,8 @@ impl Plugin for Sql {
 pub enum SqlSubcommands {
     Start,
     Stop,
+    Remove,
+    Status
 }
 
 impl Sql {
@@ -60,8 +62,29 @@ impl Sql {
                 }
                 stop(docker, config).await;
             }
+            SqlSubcommands::Remove => {
+                if status == EMPTY {
+                    println!(
+                        "Container {} doesn't exist, nothing to remove.",
+                        config.container_name
+                    );
+                    return;
+                }
+                remove(docker, config).await;
+            }
+            SqlSubcommands::Status => {
+                println!("Container {} status: {:?}", config.container_name, status)
+            }
         }
     }
+}
+
+async fn remove(docker: Docker, config: SqlConfiguration) {
+    println!("Removing container {}...", config.container_name);
+    let _ = docker
+        .remove_container(config.container_name.as_ref(), None)
+        .await;
+    println!("Container {} removed ", config.container_name);
 }
 
 async fn start(docker: Docker, config: SqlConfiguration, status: ContainerStateStatusEnum) {
