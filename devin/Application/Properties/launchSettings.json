@@ -1,0 +1,115 @@
+{
+  "profiles": {
+    "Erp - Dev": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "commandLineArgs": "--console",
+      "launchUrl": "https://local-erp.digitecgalaxus.ch:9071",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Dev",
+        "DEVINITE_DEVELOPMENTMACHINE": "true"
+      }
+    },
+    "Erp - Dev - Shortrun": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "commandLineArgs": "--console --readstatictranslations",
+      "launchUrl": "https://local-erp.digitecgalaxus.ch:9071",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Dev",
+        "DEVINITE_DEVELOPMENTMACHINE": "true"
+      }
+    },
+    "Erp - Test": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "commandLineArgs": "--console",
+      "launchUrl": "https://local-erp.digitecgalaxus.ch:9071",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Test",
+        "DEVINITE_DEVELOPMENTMACHINE": "true"
+      }
+    },
+    "Erp - Dev - Digidog": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "commandLineArgs": "--console --digidog",
+      "launchUrl": "https://local-erp.digitecgalaxus.ch:9071",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Dev",
+        "DEVINITE_DEVELOPMENTMACHINE": "true",
+        "CORECLR_ENABLE_PROFILING": "1",
+        "CORECLR_PROFILER": "{846F5F1C-F9AE-4B07-969E-05C26BC060D8}",
+        "DD_LOGS_INJECTION": "true",
+        "DD_DOTNET_TRACER_HOME": "bin/Debug/net8/datadog",
+        "CORECLR_PROFILER_PATH": "bin/Debug/net8/datadog/win-x64/Datadog.Trace.ClrProfiler.Native.dll"
+      }
+    },
+    "Erp - Dev - localIDP": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "commandLineArgs": "--console",
+      "launchUrl": "https://local-erp.digitecgalaxus.ch:9071",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Dev",
+        "DEVINITE_DEVELOPMENTMACHINE": "true",
+        "IdentityProvider__ApiClient__AuthorityCh": "https://localhost:44301",
+        "IdentityProvider__ApiClient__AuthorityEu": "https://localhost:44301",
+        "IdentityProvider__MandatorChClient__Authority": "https://localhost:44301",
+        "IdentityProvider__MandatorChClient__InternalEndpoint": "https://localhost:44301",
+        "IdentityProvider__MandatorEuClient__Authority": "https://localhost:44301",
+        "IdentityProvider__MandatorEuClient__InternalEndpoint": "https://localhost:44301",
+        "IdentityProvider__ReverseProxyUrlTemplate": "local-www.{0}:25855"
+      }
+    },
+    "Erp - Dev - DD Trace - Linux": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "commandLineArgs": "--console",
+      "launchUrl": "https://local-erp.digitecgalaxus.ch:9071",
+      "environmentVariables": {
+        "DEVINITE_DEVELOPMENTMACHINE": "true",
+        "ASPNETCORE_ENVIRONMENT": "Dev",
+        "CORECLR_ENABLE_PROFILING": "1",
+        "CORECLR_PROFILER": "{846F5F1C-F9AE-4B07-969E-05C26BC060D8}",
+        "DD_TRACE_STARTUP_LOGS": "true",
+        "DD_RUNTIME_METRICS_ENABLED": "true",
+        "DD_INTEGRATIONS": "/opt/datadog/integrations.json",
+        "DD_LOGS_INJECTION": "true",
+        "DD_DOTNET_TRACER_HOME": "bin/Debug/net8/datadog",
+        "CORECLR_PROFILER_PATH": "bin/Debug/net8/datadog/linux-x64/Datadog.Trace.ClrProfiler.Native.so"
+      }
+    },
+    "Erp - Backup": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "commandLineArgs": "--console",
+      "launchUrl": "https://local-erp.digitecgalaxus.ch:9071",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Backup",
+        "DEVINITE_DEVELOPMENTMACHINE": "true",
+        "BookIn__Module__ApiKey": "backup_bookin"
+      }
+    },
+    "Erp - Dev (Proxy for ComponentHost)": {
+      "commandName": "Project",
+      "commandLineArgs": "--console",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Dev",
+        "DEVINITE_DEVELOPMENTMACHINE": "true",
+        "Kestrel__EndPoints__Http__Url": "http://*:9170",
+        "Kestrel__EndPoints__Https__Url": "https://*:9171"
+      }
+    },
+    "Erp - Test (Proxy for ComponentHost)": {
+      "commandName": "Project",
+      "commandLineArgs": "--console",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Test",
+        "DEVINITE_DEVELOPMENTMACHINE": "true",
+        "Kestrel__EndPoints__Http__Url": "http://*:9170",
+        "Kestrel__EndPoints__Https__Url": "https://*:9171"
+      }
+    }
+  }
+}

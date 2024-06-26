@@ -1,9 +1,9 @@
-use std::fmt::{Display, Formatter};
-use crate::{plugin::Plugin};
+use crate::plugin::Plugin;
 use clap::{Args, Subcommand};
 use dialoguer::Select;
-use keyring::{Entry,Result};
+use keyring::{Entry, Result};
 use rancher::RancherClient;
+use std::fmt::{Display, Formatter};
 
 const KEYRING_SERVICE_ID: &str = "dg_cli_plugin_kube";
 const KEYRING_KEY: &str = "rancher_token";
@@ -38,7 +38,9 @@ impl Kubernetes {
     pub async fn run(cli: KubernetesCommand) {
         match cli.command {
             KubernetesSubcommands::Sync => println!("Doing a sync!"),
-            KubernetesSubcommands::Test => run_test().await.expect("Unable to sync clusters due to errors")
+            KubernetesSubcommands::Test => run_test()
+                .await
+                .expect("Unable to sync clusters due to errors"),
         }
     }
 }
@@ -57,7 +59,7 @@ async fn run_test() -> Result<()> {
 
     if clusters.is_empty() {
         println!("No clusters found to sync");
-        return Ok(())
+        return Ok(());
     }
 
     println!("Found {} clusters", clusters.len());
@@ -84,10 +86,14 @@ async fn get_rancher_clusters(rancher_token: String) -> Vec<Cluster> {
     let clusters_result = rancher_client.clusters().await;
 
     if let Ok(clusters) = clusters_result {
-        let clusters = clusters.data.into_iter().map(|c| Cluster {
-            id: c.id,
-            name: c.name
-        }).collect();
+        let clusters = clusters
+            .data
+            .into_iter()
+            .map(|c| Cluster {
+                id: c.id,
+                name: c.name,
+            })
+            .collect();
 
         return clusters;
     }

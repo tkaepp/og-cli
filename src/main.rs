@@ -3,8 +3,8 @@ use eyre::Result;
 use figment::providers::{Format, Json, Serialized};
 use figment::Figment;
 use og_cli::busybox::{self, BusyboxCommand};
-use og_cli::dotnetrun::{self, DotnetCommand};
 use og_cli::config::Config;
+use og_cli::dotnet::{self, DotnetCommand};
 use og_cli::fix::{self, FixCommand};
 use og_cli::kubernetes::{self, KubernetesCommand};
 use og_cli::mongo_db::{self, MongoDbCommand};
@@ -30,7 +30,7 @@ enum Commands {
     Kafka,
     Flink,
     Fix(FixCommand),
-    DotnetRun(DotnetCommand),
+    Dotnet(DotnetCommand),
     Doctor,
     /// Run kubernetes config helpers
     Kubernetes(KubernetesCommand),
@@ -57,7 +57,7 @@ async fn main() -> Result<()> {
         Commands::Sql(sql_command) => sql::Sql::run(sql_command).await,
         Commands::Kafka => println!("Kafka has not been implemented yet"),
         Commands::Flink => println!("Flink has not been implemented yet"),
-        Commands::DotnetRun(command) => dotnetrun::Dotnet::run(command),
+        Commands::Dotnet(command) => dotnet::Dotnet::run(command).expect("Reason"),
         Commands::Fix(fix_command) => {
             fix::Fix::run(fix_command);
         }

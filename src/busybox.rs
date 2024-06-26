@@ -26,7 +26,7 @@ impl Busybox {
                 Some("[\"sleep\", \"infinity\"]"),
                 None,
                 None,
-                None
+                None,
             )
             .build();
         match busybox_cmd {

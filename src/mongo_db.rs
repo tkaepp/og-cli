@@ -1,8 +1,8 @@
-use std::collections::HashMap;
 use crate::{common_docker::DockerComposeBuilder, plugin::Plugin};
+use std::collections::HashMap;
 
-use clap::{Args, Subcommand};
 use crate::common_docker::{DockerCompose, Volume};
+use clap::{Args, Subcommand};
 
 pub struct MongoDb;
 
@@ -34,12 +34,15 @@ impl MongoDb {
         port_mapping.insert(27017, 27017);
 
         let mut volumes = Vec::new();
-        volumes.insert(0, Volume {
-            volume_name: "mongodb-data".into(),
-            volume_type: "volume".into(),
-            bind: "/data/db".into(),
-            mode: "rw".into()
-        });
+        volumes.insert(
+            0,
+            Volume {
+                volume_name: "mongodb-data".into(),
+                volume_type: "volume".into(),
+                bind: "/data/db".into(),
+                mode: "rw".into(),
+            },
+        );
 
         let compose = DockerComposeBuilder::new()
             .add_service(
@@ -48,7 +51,7 @@ impl MongoDb {
                 None,
                 Some(environment),
                 Some(port_mapping),
-                Some(volumes)
+                Some(volumes),
             )
             .build();
         match mongodb_cmd {
