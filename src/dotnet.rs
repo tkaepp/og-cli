@@ -1,10 +1,13 @@
 use crate::plugin::Plugin;
-use dialoguer::Select;
 use clap::{Args, Subcommand};
-use eyre::{Context, Result};
+use dialoguer::Select;
+use eyre::{Context, ContextCompat, Ok, Result};
 use glob::glob;
 use regex::Regex;
-use std::{f32::consts::E, fs};
+use std::fs;
+use std::path::Path;
+use std::path::PathBuf;
+use std::process::Command;
 
 pub struct Dotnet;
 
@@ -32,31 +35,85 @@ impl Dotnet {
     }
 }
 
-fn dotnet_run(additional_params: Option<String>) -> Result<()> {
-    let g: Vec<_> = glob("**/Properties/launchSettings.json")?
+struct ProjectsWithLaunchSettings {
+    path_to_csproj: PathBuf,
+    launch_settings: Vec<String>,
+}
+
+fn get_projects_with_launch_settings() -> Result<Vec<ProjectsWithLaunchSettings>> {
+    let projects = glob("**/*.csproj")?;
+    let g = projects
         .into_iter()
-        .map(|f| fs::read_to_string(f.unwrap()).expect("Could not read file"))
+        .map(|p| {
+            let path = p?;
+            let settings = get_launch_setting_names(&path)?;
+            let o = ProjectsWithLaunchSettings {
+                path_to_csproj: path,
+                launch_settings: settings,
+            };
+            Ok(o)
+        })
         .collect();
+
+    g
+}
+
+fn get_launch_setting_names(project_path: &Path) -> Result<Vec<String>> {
+    let mut project_folder = project_path.parent().context("msg")?.to_owned();
+    project_folder.push("Properties");
+    project_folder.push("launchSettings.json");
+    let file = fs::read_to_string(&project_folder)?;
+
     let regex = lauch_settings_regex()?;
     let env_regex = env_var_regex()?;
-
-    let filtered: Vec<&str> = g.iter()
-        .map(|f|
-            f.split("\n").filter(|l| regex.is_match(l) && !env_regex.is_match(l)))
-        .flatten()
+    let filtered: Vec<&str> = file
+        .split("\n")
+        .filter(|l| regex.is_match(l) && !env_regex.is_match(l))
         .collect();
-    let launch_settings: Vec<&str> = filtered
+    let names = filtered
         .iter()
-        .map(|l| regex.captures_iter(l).map(|c| c.name("lsn").unwrap().as_str()))
-        .flatten()
+        .map(|l| {
+            regex
+                .captures(l)
+                .map(|c| c.name("lsn").unwrap().as_str().to_string())
+                .unwrap()
+        })
         .collect();
-    let selected = Select::new()
-        .with_prompt("Select launch setting")
-        .items(&launch_settings)
+    Ok(names)
+}
+
+fn dotnet_run(additional_params: Option<String>) -> Result<()> {
+    let launch_settings = get_projects_with_launch_settings()?;
+    let project_items: Vec<_> = launch_settings
+        .iter()
+        .map(|l| l.path_to_csproj.to_str().unwrap())
+        .collect();
+    let selected_proj = Select::new()
+        .with_prompt("Select project")
+        .items(&project_items)
         .interact()?;
 
-    println!("{}", launch_settings[selected]);
+    let select_launch = &launch_settings[selected_proj].launch_settings;
+    let selected_launch_name = Select::new()
+        .with_prompt("Select project")
+        .items(&select_launch)
+        .interact()?;
 
+    let launch_setting_name = &launch_settings[selected_proj].launch_settings[selected_launch_name];
+    let project_path = launch_settings[selected_proj]
+        .path_to_csproj
+        .to_str()
+        .context("msg")?;
+    let mut args = ["--launch-profile=\"".to_string() + launch_setting_name + "\""].to_vec();
+    args.push("--project=\"".to_string() + project_path + "\"");
+    if additional_params.is_some() {
+        args.push(additional_params.unwrap())
+    };
+
+    Command::new("dotnet run")
+        .args(args)
+        .spawn()
+        .expect("Could not run dotnet command");
     Ok(())
 }
 
