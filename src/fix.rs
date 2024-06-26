@@ -1,11 +1,13 @@
-use crate::plugin::Plugin;
-use clap::{Args, Subcommand};
-use crate::doctor::{DoctorFailure, DoctorSuccess};
 use std::env;
 use std::fs;
 use std::process::Command;
+
+use clap::{Args, Subcommand};
+use eyre::{ContextCompat, Result};
 use homedir::get_my_home;
-use eyre::{eyre, Context, ContextCompat, Result};
+
+use crate::doctor::{DoctorFailure, DoctorSuccess};
+use crate::plugin::Plugin;
 
 pub struct Fix;
 
@@ -27,19 +29,19 @@ impl Fix {
                         let rc_dir = get_my_home()?
                             .context("Could not get home directory")?
                             .join(".dgrc");
-                        fs::remove_file(rc_dir);
+                        fs::remove_file(rc_dir)?;
                         let cli_dir = get_my_home()?
                             .context("Could not get home directory")?
                             .join(".dg-cli");
-                        fs::remove_dir_all(cli_dir);
+                        fs::remove_dir_all(cli_dir)?;
                         let localdg_dir = get_my_home()?
                             .context("Could not get home directory")?
                             .join(".local/bin/dg");
-                        fs::remove_dir_all(localdg_dir);
+                        fs::remove_dir_all(localdg_dir)?;
                         let pipx_dir = get_my_home()?
                             .context("Could not get home directory")?
                             .join(".local/pipx");
-                        fs::remove_dir_all(pipx_dir);
+                        fs::remove_dir_all(pipx_dir)?;
                         println!("attempting to reinstall pipx");
                         let uninstallstatus = Command::new("brew")
                             .arg("uninstall")
