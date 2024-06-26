@@ -17,6 +17,8 @@ path = "src/main.rs"
 
 [dependencies]
 clap = { version = "4.5.7", features = ["derive"] }
+glob = "0.3.1"
+regex = "1.10.5"
 tempfile = "3.10.1"
 
 # The profile that 'cargo dist' will build with
