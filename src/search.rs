@@ -240,8 +240,8 @@ impl Search {
             .unwrap()
             .json::<Value>()
             .await?;
-        //println!("res = {:?}", res);
-        //  json_to_table(&res).to_string()
+        println!("{}", json_to_table(&res).to_string());
+        
         // match res {
         //     //Ok(success) => println!("{}", success),
         //     //Ok(success) => println!("{}", serde_json::json!(&success)),

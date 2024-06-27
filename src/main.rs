@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 use eyre::Result;
 
-use og_cli::config;
+use og_cli::{config, search};
 use og_cli::doctor::DoctorCommand;
 use og_cli::dotnet::{self, DotnetCommand};
 use og_cli::fix::{self, FixCommand};
@@ -10,6 +10,7 @@ use og_cli::git::GitCommand;
 use og_cli::graphql::{GraphQl, GraphQlCommand};
 use og_cli::kube::{self, KubernetesCommand};
 use og_cli::mongo_db::{self, MongoDbCommand};
+use og_cli::search::SearchCommand;
 use og_cli::sql;
 use og_cli::sql::SqlCommand;
 
@@ -41,6 +42,7 @@ enum Commands {
     /// GraphQL helpers
     #[clap(name = "graphql")]
     GraphQl(GraphQlCommand),
+    Search(SearchCommand),
 }
 
 #[tokio::main]
@@ -63,6 +65,7 @@ async fn main() -> Result<()> {
         Commands::GraphQl(graphql_command) => {
             GraphQl::run(graphql_command)?;
         }
+        Commands::Search(search_command) => search::Search::run(search_command).await?,
     }
 
     Ok(())

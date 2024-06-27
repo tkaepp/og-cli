@@ -20,6 +20,14 @@ const CONFIG_URL: &str =
 pub struct Config {
     pub sql_password: String,
     pub rancher_base_url: String,
+    pub search_urls: SearchUrl
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SearchUrl {
+    test: String,
+    prod: String,
+    oft: String,
 }
 
 pub async fn init_config() -> Result<()> {
