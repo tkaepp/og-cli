@@ -54,10 +54,13 @@ pub fn run(dr_command: DoctorCommand) {
         }
     }
 
+    results = Vec::new();
     for plugin in &plugins_with_fixes {
         results.append(&mut plugin.doctor());
-        plugin.apply_fix();
-        results.append(&mut plugin.doctor());
+        if (dr_command.apply_fixes) {
+            plugin.apply_fix();
+            results.append(&mut plugin.doctor());
+        }
     }
 
     for result in results.iter() {
