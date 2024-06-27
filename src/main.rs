@@ -1,7 +1,6 @@
 use clap::{Parser, Subcommand};
 use eyre::Result;
 
-use og_cli::{config, search};
 use og_cli::dg::{DgCli, DgCommand};
 use og_cli::doctor::DoctorCommand;
 use og_cli::dotnet::{self, DotnetCommand};
@@ -14,6 +13,7 @@ use og_cli::mongo_db::{self, MongoDbCommand};
 use og_cli::search::SearchCommand;
 use og_cli::sql;
 use og_cli::sql::SqlCommand;
+use og_cli::{config, search};
 
 #[derive(Parser)]
 #[command(version, about)]

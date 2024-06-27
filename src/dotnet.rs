@@ -31,7 +31,10 @@ fn env_var_regex() -> Result<regex::Regex> {
 impl Dotnet {
     pub fn run(cli: DotnetCommand) -> Result<()> {
         match cli.command {
-            DotnetSubcommands::Run { additional_params } => dotnet_run(additional_params),
+            DotnetSubcommands::Run {
+                additional_params,
+                dry_run,
+            } => dotnet_run(additional_params, dry_run),
         }
     }
 }
@@ -87,7 +90,7 @@ fn get_launch_setting_names(project_path: &Path) -> Result<Vec<String>> {
     Ok(names)
 }
 
-fn dotnet_run(additional_params: Option<String>) -> Result<()> {
+fn dotnet_run(additional_params: Option<String>, dry_run: bool) -> Result<()> {
     let launch_settings = get_projects_with_launch_settings()?;
     let project_items: Vec<_> = launch_settings
         .iter()
@@ -100,7 +103,7 @@ fn dotnet_run(additional_params: Option<String>) -> Result<()> {
 
     let select_launch = &launch_settings[selected_proj].launch_settings;
     let selected_launch_name = Select::new()
-        .with_prompt("Select project")
+        .with_prompt("Select launch settings")
         .items(&select_launch)
         .interact()?;
 
@@ -115,10 +118,15 @@ fn dotnet_run(additional_params: Option<String>) -> Result<()> {
         args.push(additional_args);
     };
 
-    Command::new("dotnet run")
-        .args(args)
-        .spawn()
-        .expect("Could not run dotnet command");
+    let mut cmd = Command::new("dotnet run");
+    let cmd_with_args = cmd.args(&args);
+
+    if dry_run {
+        println!("Dryrun for dotnet run with args");
+        args.iter().for_each(|a| println!("{}", a));
+    } else {
+        cmd_with_args.spawn().expect("Could not run dotnet command");
+    }
     Ok(())
 }
 
@@ -130,7 +138,11 @@ impl Plugin for Dotnet {
 
 #[derive(Subcommand, Debug)]
 enum DotnetSubcommands {
-    Run { additional_params: Option<String> },
+    Run {
+        additional_params: Option<String>,
+        #[arg(short, long)]
+        dry_run: bool,
+    },
 }
 
 fn is_dotnet_installed() -> core::result::Result<DoctorSuccess, DoctorFailure> {
