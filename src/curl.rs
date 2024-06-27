@@ -33,29 +33,25 @@ impl Curl {
     pub fn run(cli: CurlCommand, config: Vec<Curl_Api_Config>) {
         match (cli.command) {
             CurlSubcommands::Get {
-                url
-                // azureVaultName,
-                // azureSecretName,
+                url,
             } => {
-                // let apiKey = match azureVaultName {
-                //     None => "",
-                //     Some(valueName) => &valueName,
-                // };
-
-                // match azureSecretName.and(azureVaultName) {
-                //     Some(tuple) => todo!(),
-                //     None => todo!(),
-                // }
-                // let credential = azure_identity::create_credential().unwrap();
-                
+                let api_config_option = config
+                    .iter()
+                    .find(|api_config| url.contains(&api_config.curl_base_uri));
 
                 let mut easy = Easy::new();
                 let mut list = List::new();
 
-                let mut authorisation = "Authorization: Basic ".to_owned();
-                authorisation.push_str(&config.curl_api_key);    
-                list.append(&authorisation).unwrap();
-                easy.http_headers(list).unwrap();
+                match api_config_option {
+                    Some(api_config) => {
+                            println!("{}", api_config.curl_api_key);
+                            let mut authorisation = "Authorization: Basic ".to_owned();
+                            authorisation.push_str(&api_config.curl_base_uri);
+                            list.append(&authorisation).unwrap();
+                            easy.http_headers(list).unwrap();
+                    }
+                    None => {}
+                }
 
                 easy.url(&url).unwrap();
                 easy.write_function(|data| {

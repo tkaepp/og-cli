@@ -26,6 +26,12 @@ tempfile = "3.10.1"
 keyring = "2.3.3"
 rancher = { git = "https://github.com/dannyyy/rancher-rs.git" }
 tokio = "1.38.0"
+reqwest = "0.12.5"
+json = "0.12.4"
+json_to_table = "0.7.0"
+serde_json = "1.0.118"
+display_json = "0.2.1"
+eyre = "0.6.12"
 
 # The profile that 'cargo dist' will build with
 [profile.dist]

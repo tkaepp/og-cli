@@ -8,6 +8,7 @@ use og_cli::fix::{self, FixCommand};
 use og_cli::kubernetes::{self, KubernetesCommand};
 use og_cli::mongo_db::{self, MongoDbCommand};
 use og_cli::plugin::Plugin;
+use og_cli::search::{self, SearchCommand};
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
@@ -27,6 +28,7 @@ enum Commands {
     Flink,
     Fix(FixCommand),
     Curl(CurlCommand),
+    Search(SearchCommand),
     Doctor,
     /// Run kubernetes config helpers
     Kubernetes(KubernetesCommand),
@@ -53,7 +55,8 @@ async fn main() {
         Commands::Curl(curl_command) => curl::Curl::run(curl_command, config.curl_api_config),
         Commands::Fix(fix_command) => {
             fix::Fix::run(fix_command);
-        }
+        },
+        Commands::Search(search_command) => search::Search::run(search_command).await,
         Commands::Doctor => {
             let plugins: Vec<Box<dyn Plugin>> = vec![
                 Box::new(fix::Fix),
