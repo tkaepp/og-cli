@@ -1,5 +1,3 @@
-use crate::get_config;
-use crate::kube::KubeConfig;
 use eyre::eyre;
 use keyring::Entry;
 use rancher::RancherClient;
@@ -7,6 +5,9 @@ use reqwest::{Client, Url};
 use serde::Deserialize;
 use serde_json::{self};
 use serde_yaml::{self};
+
+use crate::get_config;
+use crate::kube::KubeConfig;
 
 #[derive(Deserialize)]
 struct GenerateKubeconfigResponse {
@@ -37,12 +38,13 @@ pub async fn get_rancher_kubeconfig(
     Ok(kubeconfig)
 }
 
-pub fn get_rancher_token() -> keyring::Result<String> {
+pub fn get_rancher_token() -> eyre::Result<String> {
     let entry = Entry::new(
         crate::kube::kubernetes::KEYRING_SERVICE_ID,
         crate::kube::kubernetes::KEYRING_KEY,
     )?;
-    entry.get_password()
+
+    Ok(entry.get_password()?)
 }
 
 pub async fn get_rancher_clusters(rancher_token: &str) -> Vec<crate::kube::kubernetes::Cluster> {

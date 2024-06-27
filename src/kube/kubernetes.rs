@@ -4,7 +4,7 @@ use std::io::Read;
 use clap::{Args, Subcommand};
 use colored::Colorize;
 use dialoguer::MultiSelect;
-use keyring::Result;
+use eyre::Context;
 
 use crate::kube::kube_config;
 use crate::kube::kube_config::*;
@@ -16,6 +16,20 @@ pub const RANCHER_CLUSTER_SUFFIX_LENGTH: usize = 3;
 pub const RANCHER_CLUSTER_PREFIX: &str = "dg-";
 
 pub struct Kubernetes;
+
+#[derive(Args, Debug)]
+pub struct KubernetesCommand {
+    #[command(subcommand)]
+    command: KubernetesSubcommands,
+}
+
+#[derive(Subcommand, Debug)]
+pub enum KubernetesSubcommands {
+    /// Synchronizes the DG Rancher Kubernetes contexts
+    Sync,
+    /// Cleanup local kubeconfig
+    Cleanup,
+}
 
 #[derive(Clone)]
 pub struct Cluster {
@@ -55,31 +69,14 @@ impl Display for ClusterSyncAction {
     }
 }
 
-#[derive(Args, Debug)]
-pub struct KubernetesCommand {
-    #[command(subcommand)]
-    command: KubernetesSubcommands,
-}
-
-#[derive(Subcommand, Debug)]
-pub enum KubernetesSubcommands {
-    /// Synchronizes the DG Rancher Kubernetes contexts
-    Sync,
-    /// Run random stuff to test
-    Test,
-}
-
 impl Kubernetes {
-    pub async fn run(cli: KubernetesCommand) -> Result<()> {
+    pub async fn run(cli: KubernetesCommand) -> eyre::Result<()> {
         match cli.command {
             KubernetesSubcommands::Sync => run_sync()
                 .await
-                .expect("Unable to sync clusters due to errors"),
-            KubernetesSubcommands::Test => {
-                let test = get_local_clusters();
-                for cluster in test.iter() {
-                    println!("Id: {}\tName:{}", cluster.id, cluster.name);
-                }
+                .context("Unable to sync clusters due to errors")?,
+            KubernetesSubcommands::Cleanup => {
+                run_cleanup().context("Unable to cleanup local kubeconfig due to errors")?
             }
         }
 
@@ -94,7 +91,7 @@ async fn run_sync() -> eyre::Result<()> {
 
     let rancher_token = get_rancher_token()?;
     let rancher_clusters = get_rancher_clusters(&rancher_token).await;
-    let local_clusters = get_local_clusters();
+    let local_clusters = get_local_clusters()?;
 
     if rancher_clusters.is_empty() {
         println!("{}", "No clusters found to sync".red());
@@ -125,6 +122,7 @@ async fn run_sync() -> eyre::Result<()> {
         .items(&cluster_synch_actions)
         .interact()
         .unwrap();
+    println!();
 
     if selected_actions.is_empty() {
         println!("{}", "No sync action selected.".red());
@@ -156,25 +154,62 @@ async fn run_sync() -> eyre::Result<()> {
     Ok(())
 }
 
-fn get_local_clusters() -> Vec<Cluster> {
-    let kubeconfig_result = read_kubeconfig();
-    if let Ok(kubeconfig) = kubeconfig_result {
-        let local_clusters = kubeconfig
-            .clusters
-            .into_iter()
-            .map(|c| Cluster {
-                id: c.name.clone(),
-                name: c.name[..c.name.len() - RANCHER_CLUSTER_SUFFIX_LENGTH].to_string(),
-                name_suffix: c.name[c.name.len() - RANCHER_CLUSTER_SUFFIX_LENGTH..].to_string(),
-                server: c.cluster.server,
-                token_url: None,
-            })
-            .collect();
+fn run_cleanup() -> eyre::Result<()> {
+    let mut kubeconfig = read_kubeconfig()?;
+    let clusters: Vec<String> = kubeconfig
+        .clusters
+        .iter()
+        .map(|c| c.name.to_string())
+        .collect();
 
-        return local_clusters;
+    let mut selected_clusters = MultiSelect::new()
+        .with_prompt("Select clusters to delete (Ctrl + C to abort)")
+        .items(&clusters)
+        .interact()
+        .unwrap();
+    println!();
+
+    if selected_clusters.is_empty() {
+        println!(
+            "{}",
+            "There are no clusters found to clean up in your local kubeconfig".green()
+        );
     }
 
-    Vec::new()
+    selected_clusters.sort_by(|a, b| b.cmp(a));
+    for cluster_index in selected_clusters {
+        let cluster_name = &kubeconfig.clusters[cluster_index].name.to_string();
+
+        kubeconfig.clusters.retain(|c| c.name.ne(cluster_name));
+        kubeconfig.users.retain(|c| c.name.ne(cluster_name));
+        kubeconfig.contexts.retain(|c| c.name.ne(cluster_name));
+    }
+
+    write_kubeconfig(kubeconfig)?;
+    println!(
+        "{}",
+        "Your local kubeconfig has been cleaned up successfully".green()
+    );
+
+    Ok(())
+}
+
+fn get_local_clusters() -> eyre::Result<Vec<Cluster>> {
+    let kubeconfig = read_kubeconfig()?;
+
+    let local_clusters = kubeconfig
+        .clusters
+        .into_iter()
+        .map(|c| Cluster {
+            id: c.name.clone(),
+            name: c.name[..c.name.len() - RANCHER_CLUSTER_SUFFIX_LENGTH].to_string(),
+            name_suffix: c.name[c.name.len() - RANCHER_CLUSTER_SUFFIX_LENGTH..].to_string(),
+            server: c.cluster.server,
+            token_url: None,
+        })
+        .collect();
+
+    Ok(local_clusters)
 }
 
 fn get_cluster_sync_actions(
