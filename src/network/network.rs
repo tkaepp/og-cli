@@ -1,14 +1,11 @@
-use clap::{Args, Subcommand};
+use crate::network::NetworkCommand;
 
-#[derive(Args)]
-pub struct NetworkCommand {
-    #[command(subcommand)]
-    // if this is in a seperate file it needs to be public
-    pub command: NetworkSubCommands,
-}
+pub struct Network;
 
-#[derive(Subcommand)]
-pub enum NetworkSubCommands {
-    /// Run a network test to validate various connections within the company
-    runTest,
+impl Network {
+    pub fn run(_: NetworkCommand) -> eyre::Result<()> {
+        println!("Running Network Test");
+
+        Ok(())
+    }
 }

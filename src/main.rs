@@ -13,11 +13,11 @@ use og_cli::git::GitCommand;
 use og_cli::graphql::{GraphQl, GraphQlCommand};
 use og_cli::kube::{self, KubernetesCommand};
 use og_cli::mongo_db::{self, MongoDbCommand};
-use og_cli::network::NetworkCommand;
+use og_cli::network::{Network, NetworkCommand};
 use og_cli::search::SearchCommand;
 use og_cli::sql;
 use og_cli::sql::SqlCommand;
-use og_cli::{config, network, search};
+use og_cli::{config, search};
 
 #[derive(Parser)]
 #[command(version, about)]
@@ -91,7 +91,7 @@ async fn main() -> Result<()> {
                     DgCli::run(dg_command)?;
                 }
                 Some(Commands::Network(network_command)) => {
-                    network::run(network_command)?;
+                    Network::run(network_command)?;
                 }
                 None => {
                     let mut cmd = Cli::command();

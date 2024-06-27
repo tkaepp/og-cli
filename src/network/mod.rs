@@ -1,11 +1,6 @@
-use eyre::Result;
+pub use commands::NetworkCommand;
+pub use network::Network;
 
-pub use network::NetworkCommand;
-
+mod commands;
+mod doctor;
 mod network;
-
-pub fn run(_: NetworkCommand) -> Result<()> {
-    println!("Running Network Test");
-
-    Ok(())
-}
