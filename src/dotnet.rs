@@ -72,7 +72,7 @@ fn get_launch_setting_names(project_path: &Path) -> Result<Vec<String>> {
     let regex = lauch_settings_regex()?;
     let env_regex = env_var_regex()?;
     let filtered: Vec<&str> = file
-        .split("\n")
+        .split('\n')
         .filter(|l| regex.is_match(l) && !env_regex.is_match(l))
         .collect();
     let names = filtered
@@ -111,8 +111,8 @@ fn dotnet_run(additional_params: Option<String>) -> Result<()> {
         .context("msg")?;
     let mut args = ["--launch-profile=\"".to_string() + launch_setting_name + "\""].to_vec();
     args.push("--project=\"".to_string() + project_path + "\"");
-    if additional_params.is_some() {
-        args.push(additional_params.unwrap())
+    if let Some(additional_args) = additional_params {
+        args.push(additional_args);
     };
 
     Command::new("dotnet run")
@@ -124,9 +124,7 @@ fn dotnet_run(additional_params: Option<String>) -> Result<()> {
 
 impl Plugin for Dotnet {
     fn doctor(&self) -> Vec<Result<DoctorSuccess, DoctorFailure>> {
-        let mut res = Vec::new();
-        res.push(is_dotnet_installed());
-        res
+        vec![is_dotnet_installed()]
     }
 }
 
