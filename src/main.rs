@@ -1,7 +1,6 @@
 use clap::{Parser, Subcommand};
 use eyre::Result;
 
-use og_cli::busybox::{self, BusyboxCommand};
 use og_cli::config;
 use og_cli::doctor::DoctorCommand;
 use og_cli::dotnet::{self, DotnetCommand};
@@ -24,8 +23,6 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
-    #[clap(name = "busybox")]
-    Busybox(BusyboxCommand),
     /// Run an sql server inside a docker container
     Sql(SqlCommand),
     Fix(FixCommand),
@@ -46,7 +43,6 @@ async fn main() -> Result<()> {
     config::init_config().await?;
 
     match cli.command {
-        Commands::Busybox(busybox_command) => busybox::Busybox::run(busybox_command),
         Commands::MongoDb(mongodb_command) => mongo_db::MongoDb::run(mongodb_command),
         Commands::Sql(sql_command) => sql::Sql::run(sql_command).await?,
         Commands::Dotnet(command) => dotnet::Dotnet::run(command).expect("Reason"),

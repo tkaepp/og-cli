@@ -1,4 +1,3 @@
-pub mod busybox;
 pub mod common_docker;
 pub mod config;
 pub mod doctor;
