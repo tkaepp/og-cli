@@ -23,16 +23,22 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
-    /// Run an sql server inside a docker container
+    /// Run a SQL server inside a docker container
     Sql(SqlCommand),
+    /// Recover the DG CLI
     Fix(FixCommand),
+    /// .NET helpers
     Dotnet(DotnetCommand),
+    /// Detect and fix problems
     Doctor(DoctorCommand),
     /// Run kube config helpers
     Kubernetes(KubernetesCommand),
+    /// Run a MongoDB server inside a docker container
     #[clap(name = "mongodb")]
     MongoDb(MongoDbCommand),
+    /// Git helpers
     Git(GitCommand),
+    /// GraphQL helpers
     #[clap(name = "graphql")]
     GraphQl(GraphQlCommand),
 }
