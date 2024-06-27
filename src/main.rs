@@ -33,7 +33,7 @@ enum Commands {
     Dotnet(DotnetCommand),
     /// Detect and fix problems
     Doctor(DoctorCommand),
-    /// Run kube config helpers
+    /// Run kubeconfig helpers
     Kubernetes(KubernetesCommand),
     /// Run a MongoDB server inside a docker container
     #[clap(name = "mongodb")]
