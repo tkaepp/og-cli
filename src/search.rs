@@ -122,9 +122,9 @@ impl Search {
             } => {
                 Self.call_api(
                     match environment {
-                        SearchEnvironment::Oft => todo!(),
-                        SearchEnvironment::Test => todo!(),
-                        SearchEnvironment::Prod => todo!(),
+                        SearchEnvironment::Oft => config::get_config().search_urls.oft.to_string(),
+                        SearchEnvironment::Test => config::get_config().search_urls.test.to_string(),
+                        SearchEnvironment::Prod => config::get_config().search_urls.prod.to_string(),
                     },
                     search_terms,
                     portal,

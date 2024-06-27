@@ -25,9 +25,9 @@ pub struct Config {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SearchUrl {
-    test: String,
-    prod: String,
-    oft: String,
+    pub test: String,
+    pub prod: String,
+    pub oft: String,
 }
 
 pub async fn init_config() -> Result<()> {
