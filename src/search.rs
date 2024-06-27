@@ -121,7 +121,11 @@ impl Search {
                 rewriters,
             } => {
                 Self.call_api(
-                    "https://localhost:5000/api/v4/query".to_string(),
+                    match environment {
+                        SearchEnvironment::Oft => todo!(),
+                        SearchEnvironment::Test => todo!(),
+                        SearchEnvironment::Prod => todo!(),
+                    },
                     search_terms,
                     portal,
                     language,
