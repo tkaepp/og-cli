@@ -1,7 +1,7 @@
 use clap::Args;
 
 use crate::plugin::{DoctorFix, Plugin};
-use crate::{dotnet, fix, git, kube, mongo_db};
+use crate::{dotnet, fix, git, kube, mongo_db, sql};
 
 #[derive(Args, Debug)]
 pub struct DoctorCommand {
@@ -33,6 +33,7 @@ pub fn run(dr_command: DoctorCommand) {
     let plugins: Vec<Box<dyn Plugin>> = vec![
         Box::new(fix::Fix),
         Box::new(mongo_db::MongoDb),
+        Box::new(sql::Sql),
         Box::new(kube::Kubernetes),
         Box::new(dotnet::Dotnet),
     ];
