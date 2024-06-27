@@ -1,7 +1,6 @@
 use clap::{Parser, Subcommand};
 use eyre::Result;
 
-use og_cli::{config, search};
 use og_cli::dg::{DgCli, DgCommand};
 use og_cli::doctor::DoctorCommand;
 use og_cli::dotnet::{self, DotnetCommand};
@@ -14,6 +13,7 @@ use og_cli::mongo_db::{self, MongoDbCommand};
 use og_cli::search::SearchCommand;
 use og_cli::sql;
 use og_cli::sql::SqlCommand;
+use og_cli::{config, search};
 
 #[derive(Parser)]
 #[command(version, about)]
@@ -27,23 +27,30 @@ struct Cli {
 enum Commands {
     /// Run a SQL server inside a docker container
     Sql(SqlCommand),
-    /// Recover the DG CLI
-    Fix(FixCommand),
-    /// .NET helpers
-    Dotnet(DotnetCommand),
-    /// Detect and fix problems
-    Doctor(DoctorCommand),
-    /// Run kubeconfig helpers
-    Kubernetes(KubernetesCommand),
     /// Run a MongoDB server inside a docker container
     #[clap(name = "mongodb")]
     MongoDb(MongoDbCommand),
-    /// Git helpers
-    Git(GitCommand),
     /// GraphQL helpers
     #[clap(name = "graphql")]
     GraphQl(GraphQlCommand),
+    /// Access the search API
     Search(SearchCommand),
+    /// Detect and fix problems
+    Doctor(DoctorCommand),
+    /// Recover the DG CLI (currently macOS only)
+    #[clap(name = "fix-beta")]
+    Fix(FixCommand),
+    /// .NET helpers
+    #[clap(name = "dotnet-beta")]
+    Dotnet(DotnetCommand),
+    /// Run kubeconfig helpers (currently Unix only)
+    #[clap(name = "kube-beta")]
+    Kubernetes(KubernetesCommand),
+    /// Git helpers
+    #[clap(name = "git-beta")]
+    Git(GitCommand),
+    #[clap(name = "dg-beta")]
+    /// Passthrough to DG CLI
     Dg(DgCommand),
 }
 
