@@ -6,7 +6,7 @@ pub mod dotnet;
 pub mod fix;
 pub mod git;
 pub mod graphql;
-pub mod kubernetes;
+pub mod kube;
 pub mod mongo_db;
 pub mod plugin;
 pub mod sql;

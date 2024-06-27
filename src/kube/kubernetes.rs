@@ -8,9 +8,9 @@ use keyring::{Entry, Result};
 use rancher::RancherClient;
 
 use crate::get_config;
-use crate::kubernetes::kube_config;
-use crate::kubernetes::kube_config::*;
-use crate::kubernetes::rancher::*;
+use crate::kube::kube_config;
+use crate::kube::kube_config::*;
+use crate::kube::rancher::*;
 
 const KEYRING_SERVICE_ID: &str = "dg_cli_plugin_kube";
 const KEYRING_KEY: &str = "rancher_token";

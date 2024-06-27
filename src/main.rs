@@ -9,7 +9,7 @@ use og_cli::fix::{self, FixCommand};
 use og_cli::git;
 use og_cli::git::GitCommand;
 use og_cli::graphql::{GraphQl, GraphQlCommand};
-use og_cli::kubernetes::{self, KubernetesCommand};
+use og_cli::kube::{self, KubernetesCommand};
 use og_cli::mongo_db::{self, MongoDbCommand};
 use og_cli::sql;
 use og_cli::sql::SqlCommand;
@@ -31,7 +31,7 @@ enum Commands {
     Fix(FixCommand),
     Dotnet(DotnetCommand),
     Doctor(DoctorCommand),
-    /// Run kubernetes config helpers
+    /// Run kube config helpers
     Kubernetes(KubernetesCommand),
     #[clap(name = "mongodb")]
     MongoDb(MongoDbCommand),
@@ -56,7 +56,7 @@ async fn main() -> Result<()> {
         }
         Commands::Doctor(dr_command) => og_cli::doctor::run(dr_command),
         Commands::Kubernetes(kubernetes_command) => {
-            kubernetes::Kubernetes::run(kubernetes_command).await?
+            kube::Kubernetes::run(kubernetes_command).await?
         }
         Commands::GraphQl(graphql_command) => {
             GraphQl::run(graphql_command)?;

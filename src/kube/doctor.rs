@@ -1,5 +1,5 @@
 use crate::doctor::{DoctorFailure, DoctorSuccess};
-use crate::kubernetes::Kubernetes;
+use crate::kube::Kubernetes;
 use crate::plugin::Plugin;
 
 impl Plugin for Kubernetes {

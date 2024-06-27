@@ -1,7 +1,7 @@
 use clap::Args;
 
 use crate::plugin::{DoctorFix, Plugin};
-use crate::{busybox, dotnet, fix, git, kubernetes, mongo_db};
+use crate::{busybox, dotnet, fix, git, kube, mongo_db};
 
 #[derive(Args, Debug)]
 pub struct DoctorCommand {
@@ -34,7 +34,7 @@ pub fn run(dr_command: DoctorCommand) {
         Box::new(fix::Fix),
         Box::new(busybox::Busybox),
         Box::new(mongo_db::MongoDb),
-        Box::new(kubernetes::Kubernetes),
+        Box::new(kube::Kubernetes),
         Box::new(dotnet::Dotnet),
     ];
     let mut results = Vec::new();

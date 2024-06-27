@@ -1,4 +1,4 @@
-use crate::kubernetes::KubeConfig;
+use crate::kube::KubeConfig;
 use eyre::eyre;
 use reqwest::{Client, Url};
 use serde::Deserialize;
