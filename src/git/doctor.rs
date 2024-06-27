@@ -1,15 +1,13 @@
-use std::process::Command;
-
-use crate::doctor::{DoctorFailure, DoctorSuccess};
+use crate::doctor::{is_command_in_path, DoctorFailure, DoctorSuccess};
 use crate::git::Git;
 use crate::plugin::Plugin;
 
 impl Plugin for Git {
     fn doctor(&self) -> Vec<Result<DoctorSuccess, DoctorFailure>> {
         vec![
-            Self::is_command_in_path("git"),
-            Self::is_command_in_path("gh"),
-            Self::is_command_in_path("az"),
+            is_command_in_path("git"),
+            is_command_in_path("gh"),
+            is_command_in_path("az"),
             Self::git_config_check(),
         ]
     }
@@ -46,30 +44,5 @@ impl Git {
                 fix: Some(Box::new(apply_fix_config)),
             }),
         }
-    }
-
-    fn is_command_in_path(command: &str) -> Result<DoctorSuccess, DoctorFailure> {
-        let res = match Command::new(command)
-            .stdout(std::process::Stdio::null())
-            .stderr(std::process::Stdio::null())
-            .spawn()
-        {
-            Ok(_) => Ok(DoctorSuccess {
-                message: format!("{} is installed", command),
-                plugin: command.to_string(),
-            }),
-            Err(_) => Err(DoctorFailure {
-                message: format!(
-                    "tool {} is not available. Make sure it is in the PATH",
-                    command
-                ),
-                plugin: command.to_string(),
-                fix: Some(Box::new(|| {
-                    println!("Please install");
-                    Err("Could not install automatically".into())
-                })),
-            }),
-        };
-        res
     }
 }

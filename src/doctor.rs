@@ -1,3 +1,5 @@
+use std::process::Command;
+
 use clap::Args;
 
 use crate::plugin::Plugin;
@@ -62,4 +64,28 @@ pub fn run(dr_command: DoctorCommand) {
             },
         }
     }
+}
+pub fn is_command_in_path(command: &str) -> Result<DoctorSuccess, DoctorFailure> {
+    let res = match Command::new(command)
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .spawn()
+    {
+        Ok(_) => Ok(DoctorSuccess {
+            message: format!("{} is installed", command),
+            plugin: command.to_string(),
+        }),
+        Err(_) => Err(DoctorFailure {
+            message: format!(
+                "tool {} is not available. Make sure it is in the PATH",
+                command
+            ),
+            plugin: command.to_string(),
+            fix: Some(Box::new(|| {
+                println!("Please install");
+                Err("Could not install automatically".into())
+            })),
+        }),
+    };
+    res
 }
