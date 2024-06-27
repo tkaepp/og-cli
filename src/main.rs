@@ -1,7 +1,7 @@
 use std::env;
 
-use clap::{CommandFactory, Parser, Subcommand};
 use clap::error::ErrorKind;
+use clap::{CommandFactory, Parser, Subcommand};
 use eyre::Result;
 
 use og_cli::dg::{DgCli, DgCommand};
@@ -100,7 +100,9 @@ async fn main() -> Result<()> {
             let mut cmd = Cli::command();
             cmd.build();
 
-            if e.kind() == ErrorKind::DisplayHelpOnMissingArgumentOrSubcommand || e.kind() == ErrorKind::DisplayHelp {
+            if e.kind() == ErrorKind::DisplayHelpOnMissingArgumentOrSubcommand
+                || e.kind() == ErrorKind::DisplayHelp
+            {
                 e.print()?;
                 std::process::exit(0);
             }

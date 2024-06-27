@@ -110,22 +110,24 @@ fn dotnet_run(additional_params: Option<String>, dry_run: bool) -> Result<()> {
     let launch_setting_name = &launch_settings[selected_proj].launch_settings[selected_launch_name];
     let project_path = launch_settings[selected_proj]
         .path_to_csproj
+        .as_path()
         .to_str()
         .context("msg")?;
-    let mut args = ["--launch-profile=\"".to_string() + launch_setting_name + "\""].to_vec();
-    args.push("--project=\"".to_string() + project_path + "\"");
+    let mut args = ["run".to_string()].to_vec();
+    args.push("-lp \"".to_string() + launch_setting_name + "\"");
+    args.push("--project ".to_string() + project_path);
+    args.push("--no-build".to_string());
+    args.push("--no-restore".to_string());
     if let Some(additional_args) = additional_params {
         args.push(additional_args);
     };
 
-    let mut cmd = Command::new("dotnet run");
-    let cmd_with_args = cmd.args(&args);
-
     if dry_run {
         println!("Dryrun for dotnet run with args");
+        Command::new("pwd").spawn().expect("msg");
         args.iter().for_each(|a| println!("{}", a));
     } else {
-        cmd_with_args.spawn().expect("Could not run dotnet command");
+        Command::new("dotnet").args(args).spawn().expect("Could not run dotnet command");
     }
     Ok(())
 }
