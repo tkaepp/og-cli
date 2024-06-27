@@ -4,6 +4,7 @@ use clap::{CommandFactory, Parser, Subcommand};
 use clap::error::ErrorKind;
 use eyre::Result;
 
+use og_cli::{config, search};
 use og_cli::dg::{DgCli, DgCommand};
 use og_cli::doctor::DoctorCommand;
 use og_cli::dotnet::{self, DotnetCommand};
@@ -16,7 +17,6 @@ use og_cli::mongo_db::{self, MongoDbCommand};
 use og_cli::search::SearchCommand;
 use og_cli::sql;
 use og_cli::sql::SqlCommand;
-use og_cli::{config, search};
 
 #[derive(Parser)]
 #[command(version, about)]
@@ -100,21 +100,27 @@ async fn main() -> Result<()> {
             let mut cmd = Cli::command();
             cmd.build();
 
-            if e.kind() == ErrorKind::DisplayHelpOnMissingArgumentOrSubcommand || e.kind() == ErrorKind::DisplayHelp {
-                e.print()?;
-                std::process::exit(0);
-            }
-
-            if args.is_empty() {
-                e.exit();
-            } else if args.len() == 1 && args.iter().any(|x| x == "--help" || x == "-h") {
-                let _ = cmd.print_help();
-                std::process::exit(0);
-            } else if args.len() == 1 && args.iter().any(|x| x == "--version" || x == "-v") {
-                println!("{}", cmd.render_long_version());
-                std::process::exit(0);
-            } else {
-                DgCli::run_from_plain_args(args)?;
+            match e.kind() {
+                ErrorKind::InvalidValue |
+                ErrorKind::UnknownArgument |
+                ErrorKind::NoEquals |
+                ErrorKind::ValueValidation |
+                ErrorKind::TooManyValues |
+                ErrorKind::TooFewValues |
+                ErrorKind::WrongNumberOfValues |
+                ErrorKind::ArgumentConflict |
+                ErrorKind::MissingRequiredArgument |
+                ErrorKind::MissingSubcommand |
+                ErrorKind::InvalidUtf8 |
+                ErrorKind::DisplayHelp |
+                ErrorKind::DisplayHelpOnMissingArgumentOrSubcommand |
+                ErrorKind::DisplayVersion |
+                ErrorKind::Io |
+                ErrorKind::Format => {
+                    e.print()?;
+                    std::process::exit(0);
+                }
+                _ => {DgCli::run_from_plain_args(args)?;}
             }
         }
     }
