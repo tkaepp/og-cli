@@ -1,3 +1,4 @@
+use crate::get_config;
 use crate::kube::KubeConfig;
 use eyre::eyre;
 use keyring::Entry;
@@ -6,7 +7,6 @@ use reqwest::{Client, Url};
 use serde::Deserialize;
 use serde_json::{self};
 use serde_yaml::{self};
-use crate::get_config;
 
 #[derive(Deserialize)]
 struct GenerateKubeconfigResponse {
@@ -38,7 +38,10 @@ pub async fn get_rancher_kubeconfig(
 }
 
 pub fn get_rancher_token() -> keyring::Result<String> {
-    let entry = Entry::new(crate::kube::kubernetes::KEYRING_SERVICE_ID, crate::kube::kubernetes::KEYRING_KEY)?;
+    let entry = Entry::new(
+        crate::kube::kubernetes::KEYRING_SERVICE_ID,
+        crate::kube::kubernetes::KEYRING_KEY,
+    )?;
     entry.get_password()
 }
 
@@ -55,8 +58,12 @@ pub async fn get_rancher_clusters(rancher_token: &str) -> Vec<crate::kube::kuber
             .into_iter()
             .map(|c| crate::kube::kubernetes::Cluster {
                 id: c.id,
-                name: c.name[..c.name.len() - crate::kube::kubernetes::RANCHER_CLUSTER_SUFFIX_LENGTH].to_string(),
-                name_suffix: c.name[c.name.len() - crate::kube::kubernetes::RANCHER_CLUSTER_SUFFIX_LENGTH..].to_string(),
+                name: c.name
+                    [..c.name.len() - crate::kube::kubernetes::RANCHER_CLUSTER_SUFFIX_LENGTH]
+                    .to_string(),
+                name_suffix: c.name
+                    [c.name.len() - crate::kube::kubernetes::RANCHER_CLUSTER_SUFFIX_LENGTH..]
+                    .to_string(),
                 server: c
                     .links
                     .get("self")
