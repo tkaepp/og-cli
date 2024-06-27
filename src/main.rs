@@ -14,7 +14,7 @@ use og_cli::mongo_db::{self, MongoDbCommand};
 use og_cli::sql;
 use og_cli::sql::SqlCommand;
 
-#[derive(Parser, Debug)]
+#[derive(Parser)]
 #[command(version, about)]
 #[clap(name = "dg cli")]
 struct Cli {
@@ -22,7 +22,7 @@ struct Cli {
     command: Commands,
 }
 
-#[derive(Subcommand, Debug)]
+#[derive(Subcommand)]
 enum Commands {
     #[clap(name = "busybox")]
     Busybox(BusyboxCommand),

@@ -32,6 +32,7 @@ impl Plugin for MongoDb {
                 Err(DoctorFailure {
                     message: "Docker daemon is not running".into(),
                     plugin: "MongoDB".into(),
+                    fix: None,
                 }),
             );
         }

@@ -29,27 +29,26 @@ pub fn run(dr_command: DoctorCommand) {
         Box::new(kubernetes::Kubernetes),
         Box::new(dotnet::Dotnet),
     ];
-    let mut results: Vec<Result<DoctorSuccess, (DoctorFailure, Option<Result<(), String>>)>> = Vec::new();
 
-    for plugin in &plugins {
-        let doctor_result = &mut plugin.doctor();
-        let doctor_result_with_fixes: Vec<Result<DoctorSuccess, (DoctorFailure, Option<Result<(), String>>)>> =
-            doctor_result
-                .iter()
-                .map(|r| {
-                    r.map_err(|e| match dr_command.apply_fixes {
-                        false => (e, None),
-                        true => match e.fix {
-                            None => (e, None),
-                            Some(f) => (e, Some((f)())),
-                        },
-                    })
-                })
-                .collect();
-        results.append(&mut doctor_result_with_fixes);
-    }
+    let doc_res: Vec<Result<DoctorSuccess, DoctorFailure>> =
+        plugins.iter().map(|p| p.doctor()).flatten().collect();
+    let doctor_result_with_fixes: Vec<
+        Result<&DoctorSuccess, (&DoctorFailure, Option<Result<(), String>>)>,
+    > = doc_res
+        .iter()
+        .map(|r| {
+            let x = r.as_ref().map_err(|e| match dr_command.apply_fixes {
+                false => (e, None),
+                true => match &e.fix {
+                    None => (e, None),
+                    Some(f) => (e, Some((f)())),
+                },
+            });
+            x
+        })
+        .collect();
 
-    for result in results.iter() {
+    for result in doctor_result_with_fixes.iter() {
         match result {
             Ok(res) => {
                 print!("✅ {}: {}\n", res.plugin, res.message)
@@ -59,7 +58,7 @@ pub fn run(dr_command: DoctorCommand) {
                     Ok(_) => print!("✅ Fixed {}: {}\n", x.plugin, x.message),
                     Err(y) => print!("❌ Could not fix {}: {} : {}\n", x.plugin, x.message, y),
                 },
-                (x, None) => print!("❌ {}: {}\n", res.0.plugin, res.0.message),
+                (x, None) => print!("❌ {}: {}\n", x.plugin, res.0.message),
             },
         }
     }

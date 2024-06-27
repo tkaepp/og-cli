@@ -65,8 +65,8 @@ impl Git {
                 ),
                 plugin: command.to_string(),
                 fix: Some(Box::new(|| {
-                    println!("Please installed");
-                    false
+                    println!("Please install");
+                    Err("Could not install automatically".into())
                 })),
             }),
         };

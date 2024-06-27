@@ -30,6 +30,7 @@ impl Plugin for Busybox {
                 Err(DoctorFailure {
                     message: "Docker daemon is not running".into(),
                     plugin: "Busybox".into(),
+                    fix: None,
                 }),
             );
         }

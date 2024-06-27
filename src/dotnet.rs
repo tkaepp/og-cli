@@ -150,6 +150,7 @@ fn is_dotnet_installed() -> core::result::Result<DoctorSuccess, DoctorFailure> {
         core::result::Result::Err(_) => core::result::Result::Err(DoctorFailure {
             message: format!("Dotnet is not available. Make sure it is installed"),
             plugin: "dotnet".to_string(),
+            fix: None,
         }),
     };
     res
