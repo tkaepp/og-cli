@@ -20,12 +20,11 @@ pub struct FixCommand {
 impl Fix {
     pub fn run(cli: FixCommand) -> Result<()> {
         match cli.command {
-            FixSubcommands::Reinstall => 
-            { 
+            FixSubcommands::Reinstall => {
                 println!("Reinstalling Dg Cli");
                 let os = env::consts::OS;
-                match os{
-                    "macos"=>{
+                match os {
+                    "macos" => {
                         let rc_dir = get_my_home()?
                             .context("Could not get home directory")?
                             .join(".dgrc");
@@ -49,13 +48,13 @@ impl Fix {
                             .status()
                             .expect("brew command failed to start");
 
-                            println!("Uninstall finished with: {uninstallstatus}");
+                        println!("Uninstall finished with: {uninstallstatus}");
 
-                            let message = match fs::remove_dir_all("~/.local/pipx"){
-                                Ok(()) => ".dg-cli deleted",
-                                Err(_e) => "unknown error",
-                            };
-                            println!("{message}");
+                        let message = match fs::remove_dir_all("~/.local/pipx") {
+                            Ok(()) => ".dg-cli deleted",
+                            Err(_e) => "unknown error",
+                        };
+                        println!("{message}");
 
                         let installstatus = Command::new("brew")
                             .arg("install")
@@ -63,7 +62,7 @@ impl Fix {
                             .status()
                             .expect("brew command failed to start");
 
-                            println!("Install finished with: {installstatus}");
+                        println!("Install finished with: {installstatus}");
 
                         Command::new("curl")
                             .arg("-sL")
@@ -72,26 +71,25 @@ impl Fix {
                             .arg("install.py")
                             .status()
                             .expect("curl command failed to start");
-                        
+
                         let clistatus = Command::new("python3")
                             .arg("install.py")
                             .status()
                             .expect("python3 command failed to start");
 
-                            println!("cli install finished with: {clistatus}");
-
-                    },
-                    "windows"=>{
+                        println!("cli install finished with: {clistatus}");
+                    }
+                    "windows" => {
                         println!("Hi I'm on windows");
-                    },
-                    "linux"=>{
+                    }
+                    "linux" => {
                         println!("Hi I'm on linux");
-                    },
-                    _ =>{
+                    }
+                    _ => {
                         println!("InvalidOS, cancelling");
-                    },
+                    }
                 }
-            },
+            }
         }
         Ok(())
     }

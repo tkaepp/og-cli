@@ -1,5 +1,5 @@
-use crate::doctor::DoctorFailure;
-use crate::doctor::DoctorSuccess;
+use crate::doctor::{DoctorFailure, DoctorSuccess};
+// use std::result::Result::Ok;
 use crate::plugin::Plugin;
 use clap::{Args, Subcommand};
 use dialoguer::Select;
@@ -7,8 +7,7 @@ use eyre::{Context, ContextCompat, Ok, Result};
 use glob::glob;
 use regex::Regex;
 use std::fs;
-use std::path::Path;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 pub struct Dotnet;
@@ -125,14 +124,35 @@ fn dotnet_run(additional_params: Option<String>) -> Result<()> {
 
 impl Plugin for Dotnet {
     fn doctor(&self) -> Vec<Result<DoctorSuccess, DoctorFailure>> {
-        println!("Running the fix doctor");
-        Vec::new()
+        let mut res = Vec::new();
+        res.push(is_dotnet_installed());
+        res
     }
 }
 
 #[derive(Subcommand, Debug)]
 enum DotnetSubcommands {
     Run { additional_params: Option<String> },
+}
+
+fn is_dotnet_installed() -> core::result::Result<DoctorSuccess, DoctorFailure> {
+    let cmd_result = Command::new("dotnet")
+        .arg("--version")
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .output();
+
+    let res = match cmd_result {
+        core::result::Result::Ok(_) => core::result::Result::Ok(DoctorSuccess {
+            message: format!("dotnet is installed"),
+            plugin: "dotnet".to_string(),
+        }),
+        core::result::Result::Err(_) => core::result::Result::Err(DoctorFailure {
+            message: format!("Dotnet is not available. Make sure it is installed"),
+            plugin: "dotnet".to_string(),
+        }),
+    };
+    res
 }
 
 #[cfg(test)]

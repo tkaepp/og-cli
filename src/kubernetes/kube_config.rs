@@ -70,8 +70,8 @@ pub fn read_kubeconfig() -> Result<KubeConfig> {
     let kube_config_path = get_kubeconfig_path();
 
     // Read the existing kube config file
-    let kube_config_content = fs::read_to_string(kube_config_path?)
-        .with_context(|| "A valid kubeconfig must exist")?;
+    let kube_config_content =
+        fs::read_to_string(kube_config_path?).with_context(|| "A valid kubeconfig must exist")?;
 
     // Parse the YAML content into a KubeConfig struct
     let kube_config: KubeConfig = serde_yaml::from_str(&kube_config_content)

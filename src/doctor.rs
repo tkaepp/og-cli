@@ -1,7 +1,7 @@
 use clap::Args;
 
-use crate::{busybox, fix, git, kubernetes, mongo_db};
 use crate::plugin::{DoctorFix, Plugin};
+use crate::{busybox, dotnet, fix, git, kubernetes, mongo_db};
 
 #[derive(Args, Debug)]
 pub struct DoctorCommand {
@@ -21,21 +21,21 @@ pub struct DoctorFailure {
 }
 
 pub fn run(dr_command: DoctorCommand) {
-
     match dr_command.apply_fixes {
         false => {}
-        true => { println!("apply fixes on failing checks")}
+        true => {
+            println!("apply fixes on failing checks")
+        }
     }
 
-    let plugins_with_fixes: Vec<(Box<dyn DoctorFix>)> = vec![
-        Box::new(git::Git),
-    ];
+    let plugins_with_fixes: Vec<Box<dyn DoctorFix>> = vec![Box::new(git::Git)];
 
     let plugins: Vec<Box<dyn Plugin>> = vec![
         Box::new(fix::Fix),
         Box::new(busybox::Busybox),
         Box::new(mongo_db::MongoDb),
         Box::new(kubernetes::Kubernetes),
+        Box::new(dotnet::Dotnet),
     ];
     let mut results = Vec::new();
 
@@ -45,11 +45,14 @@ pub fn run(dr_command: DoctorCommand) {
 
     for result in results.iter() {
         match result {
-            Ok(res) => { print!("✅ {}: {}\n", res.plugin, res.message) }
-            Err(res) => { print!("❌ {}: {}\n", res.plugin, res.message) }
+            Ok(res) => {
+                print!("✅ {}: {}\n", res.plugin, res.message)
+            }
+            Err(res) => {
+                print!("❌ {}: {}\n", res.plugin, res.message)
+            }
         }
     }
-
 
     for plugin in &plugins_with_fixes {
         results.append(&mut plugin.doctor());
@@ -59,8 +62,12 @@ pub fn run(dr_command: DoctorCommand) {
 
     for result in results.iter() {
         match result {
-            Ok(res) => { print!("✅ {}: {}\n", res.plugin, res.message) }
-            Err(res) if dr_command.apply_fixes == false => { print!("❌ {}: {}\n", res.plugin, res.message) }
+            Ok(res) => {
+                print!("✅ {}: {}\n", res.plugin, res.message)
+            }
+            Err(res) if dr_command.apply_fixes == false => {
+                print!("❌ {}: {}\n", res.plugin, res.message)
+            }
             Err(res) if dr_command.apply_fixes == true => {
                 print!("❌ {}: {}\n", res.plugin, res.message);
             }

@@ -2,9 +2,9 @@ use std::collections::HashMap;
 
 use clap::{Args, Subcommand};
 
-use crate::{common_docker::DockerComposeBuilder, plugin::Plugin};
 use crate::common_docker::{DockerCompose, Volume};
 use crate::doctor::{DoctorFailure, DoctorSuccess};
+use crate::{common_docker::DockerComposeBuilder, plugin::Plugin};
 
 pub struct MongoDb;
 
