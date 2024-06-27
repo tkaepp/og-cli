@@ -22,25 +22,23 @@ impl Plugin for Git {
 
 impl DoctorFix for Git {
     fn apply_fix(&self) -> Vec<Result<DoctorSuccess, DoctorFailure>> {
-        vec![
-            Self::gitconfig_fixes()
-        ]
+        vec![Self::gitconfig_fixes()]
     }
 }
 
 impl From<git2::Error> for DoctorFailure {
     fn from(_: Error) -> Self {
-        DoctorFailure{
+        DoctorFailure {
             message: "git error".into(),
-            plugin: GIT_CONFIG.to_string()
+            plugin: GIT_CONFIG.to_string(),
         }
     }
 }
 impl From<git2::Error> for DoctorSuccess {
     fn from(_: Error) -> Self {
-        DoctorSuccess{
+        DoctorSuccess {
             message: "git success".into(),
-            plugin: GIT_CONFIG.to_string()
+            plugin: GIT_CONFIG.to_string(),
         }
     }
 }
@@ -66,9 +64,7 @@ impl Git {
     }
 
     fn gitconfig_fixes() -> Result<DoctorSuccess, DoctorFailure> {
-        let desired_config  = [
-            ("push.autoSetupRemote", "true"),
-        ];
+        let desired_config = [("push.autoSetupRemote", "true")];
         let mut config = git2::Config::open_default().expect("git config lookup failed!");
         let mut results = vec![];
         let mut errs = vec![];
@@ -79,13 +75,15 @@ impl Git {
         }
 
         if errs.is_empty() {
-            Ok(DoctorSuccess{
+            Ok(DoctorSuccess {
                 message: "alskdfj".into(),
-                plugin: GIT_CONFIG.to_string()})
-        }else {
-            Err(DoctorFailure{
+                plugin: GIT_CONFIG.to_string(),
+            })
+        } else {
+            Err(DoctorFailure {
                 message: "alskdfj".into(),
-                plugin: GIT_CONFIG.to_string()})
+                plugin: GIT_CONFIG.to_string(),
+            })
         }
     }
 
