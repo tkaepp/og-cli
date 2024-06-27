@@ -1,7 +1,6 @@
 use std::convert::Into;
 use std::process::Command;
 
-use futures_util::StreamExt;
 use git2::Error;
 
 use crate::doctor::{DoctorFailure, DoctorSuccess};
@@ -23,27 +22,14 @@ impl Plugin for Git {
 
 impl DoctorFix for Git {
     fn apply_fix(&self) -> Vec<Result<DoctorSuccess, DoctorFailure>> {
-        let entry = "push.autoSetupRemote";
-        let mut config = git2::Config::open_default().expect("git config lookup failed!");
-
-        let result = config
-            .set_bool(entry, true)
-            .map(|x| DoctorSuccess {
-                message: format!("fix executed for {}", "push.autoSetupRemote"),
-                plugin: GIT_CONFIG.to_string(),
-            })
-            .map_err(|x| DoctorFailure {
-                message: format!("fix failed for {}", "push.autoSetupRemote"),
-                plugin: GIT_CONFIG.to_string(),
-            });
-        vec![result]
+        vec![
+            Self::gitconfig_fixes()
+        ]
     }
-
-
 }
 
 impl From<git2::Error> for DoctorFailure {
-    fn from(value: Error) -> Self {
+    fn from(_: Error) -> Self {
         DoctorFailure{
             message: "git error".into(),
             plugin: GIT_CONFIG.to_string()
@@ -51,7 +37,7 @@ impl From<git2::Error> for DoctorFailure {
     }
 }
 impl From<git2::Error> for DoctorSuccess {
-    fn from(value: Error) -> Self {
+    fn from(_: Error) -> Self {
         DoctorSuccess{
             message: "git success".into(),
             plugin: GIT_CONFIG.to_string()

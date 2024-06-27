@@ -2,10 +2,10 @@ use std::ffi::OsStr;
 use std::process::Command;
 
 use dialoguer::MultiSelect;
-use eyre::{ContextCompat, Result};
+use eyre::{ContextCompat, eyre, Result};
 use homedir::get_my_home;
-use ssh_key::rand_core::OsRng;
 use ssh_key::{Algorithm, LineEnding, PrivateKey, PublicKey};
+use ssh_key::rand_core::OsRng;
 
 use crate::git;
 use crate::git::commands::GitSubCommands;
@@ -52,7 +52,7 @@ fn add_keys_github() -> Result<()> {
 fn ensure_ssh_keys() -> Result<Vec<PublicKey>> {
     let ssh_dir = get_my_home()?
         .context("Could not get home directory")?
-        .join(".ssh"); // move this check to the doctor
+        .join(".ssh2"); // move this check to the doctor
 
     let public_keys: Vec<PublicKey> = ssh_dir
         .read_dir()?
@@ -82,7 +82,7 @@ fn ensure_ssh_keys() -> Result<Vec<PublicKey>> {
             .unwrap();
 
         if selection.is_empty() {
-            return panic!("No git platforms were selected. Abort key creation");
+            return Err(eyre!("No git platforms were selected. Abort key creation"));
         }
 
         let private_key_ed = PrivateKey::random(&mut OsRng, Algorithm::Ed25519)?;
