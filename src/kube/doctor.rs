@@ -68,7 +68,7 @@ impl Kubernetes {
         }
 
         Ok(DoctorSuccess {
-            message: format!("{}", "Rancher token foundin credential store".green()),
+            message: format!("{}", "Rancher token found in credential store".green()),
             plugin: PLUGIN_NAME.to_string(),
         })
     }
