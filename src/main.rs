@@ -1,7 +1,6 @@
 use clap::{Parser, Subcommand};
 use eyre::Result;
 
-use og_cli::busybox::{self, BusyboxCommand};
 use og_cli::config;
 use og_cli::doctor::DoctorCommand;
 use og_cli::dotnet::{self, DotnetCommand};
@@ -24,18 +23,22 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
-    #[clap(name = "busybox")]
-    Busybox(BusyboxCommand),
-    /// Run an sql server inside a docker container
+    /// Run a SQL server inside a docker container
     Sql(SqlCommand),
+    /// Recover the DG CLI
     Fix(FixCommand),
+    /// .NET helpers
     Dotnet(DotnetCommand),
+    /// Detect and fix problems
     Doctor(DoctorCommand),
     /// Run kube config helpers
     Kubernetes(KubernetesCommand),
+    /// Run a MongoDB server inside a docker container
     #[clap(name = "mongodb")]
     MongoDb(MongoDbCommand),
+    /// Git helpers
     Git(GitCommand),
+    /// GraphQL helpers
     #[clap(name = "graphql")]
     GraphQl(GraphQlCommand),
 }
@@ -46,7 +49,6 @@ async fn main() -> Result<()> {
     config::init_config().await?;
 
     match cli.command {
-        Commands::Busybox(busybox_command) => busybox::Busybox::run(busybox_command),
         Commands::MongoDb(mongodb_command) => mongo_db::MongoDb::run(mongodb_command),
         Commands::Sql(sql_command) => sql::Sql::run(sql_command).await?,
         Commands::Dotnet(command) => dotnet::Dotnet::run(command).expect("Reason"),

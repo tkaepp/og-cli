@@ -1,8 +1,13 @@
+use std::convert::Into;
 use std::process::Command;
+
+use git2::Error;
 
 use crate::doctor::{DoctorFailure, DoctorSuccess};
 use crate::git::Git;
 use crate::plugin::{DoctorFix, Plugin};
+
+const GIT_CONFIG: &str = "git - config";
 
 impl Plugin for Git {
     fn doctor(&self) -> Vec<Result<DoctorSuccess, DoctorFailure>> {
@@ -17,20 +22,24 @@ impl Plugin for Git {
 
 impl DoctorFix for Git {
     fn apply_fix(&self) -> Vec<Result<DoctorSuccess, DoctorFailure>> {
-        let entry = "push.autoSetupRemote";
-        let mut config = git2::Config::open_default().expect("git config lookup failed!");
+        vec![Self::gitconfig_fixes()]
+    }
+}
 
-        let result = config
-            .set_bool(entry, true)
-            .map(|x| DoctorSuccess {
-                message: format!("fix executed for {}", "push.autoSetupRemote"),
-                plugin: "git - config".into(),
-            })
-            .map_err(|x| DoctorFailure {
-                message: format!("fix failed for {}", "push.autoSetupRemote"),
-                plugin: "git - config".into(),
-            });
-        vec![result]
+impl From<git2::Error> for DoctorFailure {
+    fn from(_: Error) -> Self {
+        DoctorFailure {
+            message: "git error".into(),
+            plugin: GIT_CONFIG.to_string(),
+        }
+    }
+}
+impl From<git2::Error> for DoctorSuccess {
+    fn from(_: Error) -> Self {
+        DoctorSuccess {
+            message: "git success".into(),
+            plugin: GIT_CONFIG.to_string(),
+        }
     }
 }
 
@@ -41,16 +50,40 @@ impl Git {
         match config.get_bool(entry) {
             Ok(c) if c == true => Ok(DoctorSuccess {
                 message: format!("{} is configured correct with {} ", entry, c.to_string()),
-                plugin: "git - config".into(),
+                plugin: GIT_CONFIG.to_string(),
             }),
             Ok(c) if c == false => Err(DoctorFailure {
                 message: format!("{} is not configured wrong with {}", entry, c.to_string()),
-                plugin: "git - config".into(),
+                plugin: GIT_CONFIG.to_string(),
             }),
             _ => Err(DoctorFailure {
                 message: format!("{} is not configured wrong.", entry),
-                plugin: "git - config".into(),
+                plugin: GIT_CONFIG.to_string(),
             }),
+        }
+    }
+
+    fn gitconfig_fixes() -> Result<DoctorSuccess, DoctorFailure> {
+        let desired_config = [("push.autoSetupRemote", "true")];
+        let mut config = git2::Config::open_default().expect("git config lookup failed!");
+        let mut results = vec![];
+        let mut errs = vec![];
+
+        for (name, value) in desired_config {
+            results.push(config.set_str(name, value));
+            errs.extend(config.set_str(name, value).err());
+        }
+
+        if errs.is_empty() {
+            Ok(DoctorSuccess {
+                message: "alskdfj".into(),
+                plugin: GIT_CONFIG.to_string(),
+            })
+        } else {
+            Err(DoctorFailure {
+                message: "alskdfj".into(),
+                plugin: GIT_CONFIG.to_string(),
+            })
         }
     }
 
