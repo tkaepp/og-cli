@@ -20,7 +20,7 @@ const CONFIG_URL: &str =
 pub struct Config {
     pub sql_password: String,
     pub rancher_base_url: String,
-    pub search_urls: SearchUrl
+    pub search_urls: SearchUrl,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -45,7 +45,19 @@ pub async fn init_config() -> Result<()> {
             .context("Unable to fetch config, are you connected to the VPN?")?;
     }
 
-    let config: Config = Figment::new().merge(Json::file(&ogrc)).extract()?;
+    // TODO Make all of this more idiomatic
+    let config_result = Figment::new().merge(Json::file(&ogrc)).extract::<Config>();
+    let config = if let Ok(config) = config_result {
+        config
+    } else {
+        println!("Detected out-of-date config, redownloading from {CONFIG_URL}");
+        download_config(&ogrc)
+            .await
+            .context("Unable to fetch config, are you connected to the VPN?")?;
+        Figment::new()
+            .merge(Json::file(&ogrc))
+            .extract::<Config>()?
+    };
     CONFIG
         .set(config)
         .map_err(|_| eyre!("Failed to set config"))?;
