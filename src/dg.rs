@@ -20,7 +20,7 @@ pub struct DgCommand;
 
 impl DgCli {
     pub fn run(_: DgCommand) -> Result<()> {
-        let dg_path = "/usr/bin/dg";
+        let dg_path = "dg";
         Command::new(dg_path)
             .env("DG_CLI_USER_TYPE", "autonomous")
             .args(["--help"])
@@ -30,7 +30,7 @@ impl DgCli {
     }
 
     pub fn run2() -> Result<()> {
-        let dg_path = "/usr/bin/dg";
+        let dg_path = "dg";
         Command::new(dg_path)
             .env("DG_CLI_USER_TYPE", "autonomous")
             .args(["--help"])
@@ -40,7 +40,7 @@ impl DgCli {
     }
 
     pub fn run_from_plain_args(args: Vec<String>) -> Result<()> {
-        let dg_path = "/usr/bin/dg";
+        let dg_path = "dg";
         Command::new(dg_path)
             .env("DG_CLI_USER_TYPE", "autonomous")
             .args(args)
