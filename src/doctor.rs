@@ -1,7 +1,7 @@
 use clap::Args;
 
 use crate::plugin::Plugin;
-use crate::{busybox, dotnet, fix, git, kubernetes, mongo_db};
+use crate::{dotnet, fix, git, kube, mongo_db};
 
 #[derive(Args)]
 pub struct DoctorCommand {
@@ -24,9 +24,8 @@ pub fn run(dr_command: DoctorCommand) {
     let plugins: Vec<Box<dyn Plugin>> = vec![
         Box::new(fix::Fix),
         Box::new(git::Git),
-        Box::new(busybox::Busybox),
         Box::new(mongo_db::MongoDb),
-        Box::new(kubernetes::Kubernetes),
+        Box::new(kube::Kubernetes),
         Box::new(dotnet::Dotnet),
     ];
 

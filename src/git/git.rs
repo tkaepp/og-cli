@@ -2,7 +2,7 @@ use std::ffi::OsStr;
 use std::process::Command;
 
 use dialoguer::MultiSelect;
-use eyre::{ContextCompat, Result};
+use eyre::{eyre, ContextCompat, Result};
 use homedir::get_my_home;
 use ssh_key::rand_core::OsRng;
 use ssh_key::{Algorithm, LineEnding, PrivateKey, PublicKey};
@@ -40,7 +40,7 @@ fn add_keys_github() -> Result<()> {
 }
 
 #[cfg(target_family = "windows")]
-fn add_keys_github(p0: Vec<PublicKey>) -> Result<()> {
+fn add_keys_github() -> Result<()> {
     // Command::new("cmd")
     //     .args(["/C", "gh ssh-key add ~/.ssh/og-ssh.pub -t og"])
     //     .output()
@@ -52,7 +52,7 @@ fn add_keys_github(p0: Vec<PublicKey>) -> Result<()> {
 fn ensure_ssh_keys() -> Result<Vec<PublicKey>> {
     let ssh_dir = get_my_home()?
         .context("Could not get home directory")?
-        .join(".ssh"); // move this check to the doctor
+        .join(".ssh2"); // move this check to the doctor
 
     let public_keys: Vec<PublicKey> = ssh_dir
         .read_dir()?
@@ -82,7 +82,7 @@ fn ensure_ssh_keys() -> Result<Vec<PublicKey>> {
             .unwrap();
 
         if selection.is_empty() {
-            return panic!("No git platforms were selected. Abort key creation");
+            return Err(eyre!("No git platforms were selected. Abort key creation"));
         }
 
         let private_key_ed = PrivateKey::random(&mut OsRng, Algorithm::Ed25519)?;
@@ -106,6 +106,11 @@ fn ensure_ssh_keys() -> Result<Vec<PublicKey>> {
 
         return Ok(selection.iter().map(|r| public_keys[*r].clone()).collect());
     }
+}
+
+#[cfg(target_family = "windows")]
+fn ensure_ssh_keys() -> Result<Vec<PublicKey>> {
+    Ok(vec![])
 }
 
 #[cfg(target_family = "windows")]

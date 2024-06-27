@@ -4,28 +4,48 @@ use std::io::Read;
 use clap::{Args, Subcommand};
 use colored::Colorize;
 use dialoguer::MultiSelect;
-use keyring::{Entry, Result};
-use rancher::RancherClient;
+use eyre::Context;
 
-use crate::get_config;
-use crate::kubernetes::kube_config;
-use crate::kubernetes::kube_config::*;
-use crate::kubernetes::rancher::*;
+use crate::kube::kube_config;
+use crate::kube::kube_config::*;
+use crate::kube::rancher::*;
 
-const KEYRING_SERVICE_ID: &str = "dg_cli_plugin_kube";
-const KEYRING_KEY: &str = "rancher_token";
-const RANCHER_CLUSTER_SUFFIX_LENGTH: usize = 3;
-const RANCHER_CLUSTER_PREFIX: &str = "dg-";
+pub const KEYRING_SERVICE_ID: &str = "dg_cli_plugin_kube";
+pub const KEYRING_KEY: &str = "rancher_token";
+pub const RANCHER_CLUSTER_SUFFIX_LENGTH: usize = 3;
+pub const RANCHER_CLUSTER_PREFIX: &str = "dg-";
 
 pub struct Kubernetes;
 
+#[derive(Args, Debug)]
+pub struct KubernetesCommand {
+    #[command(subcommand)]
+    command: KubernetesSubcommands,
+}
+
+#[derive(Subcommand, Debug)]
+pub enum KubernetesSubcommands {
+    /// Synchronizes the DG Rancher Kubernetes contexts
+    Sync {
+        /// Omits doing a backup of your kubeconfig
+        #[arg(short, long)]
+        no_backup: bool,
+    },
+    /// Cleanup (delete) local kubeconfig
+    Cleanup {
+        /// Omits doing a backup of your kubeconfig
+        #[arg(short, long)]
+        no_backup: bool,
+    },
+}
+
 #[derive(Clone)]
-struct Cluster {
-    id: String,
-    name: String,
-    name_suffix: String,
-    server: String,
-    token_url: Option<String>,
+pub struct Cluster {
+    pub id: String,
+    pub name: String,
+    pub name_suffix: String,
+    pub server: String,
+    pub token_url: Option<String>,
 }
 
 #[derive(Debug)]
@@ -57,46 +77,28 @@ impl Display for ClusterSyncAction {
     }
 }
 
-#[derive(Args, Debug)]
-pub struct KubernetesCommand {
-    #[command(subcommand)]
-    command: KubernetesSubcommands,
-}
-
-#[derive(Subcommand, Debug)]
-pub enum KubernetesSubcommands {
-    /// Synchronizes the DG Rancher Kubernetes contexts
-    Sync,
-    /// Run random stuff to test
-    Test,
-}
-
 impl Kubernetes {
-    pub async fn run(cli: KubernetesCommand) -> Result<()> {
+    pub async fn run(cli: KubernetesCommand) -> eyre::Result<()> {
         match cli.command {
-            KubernetesSubcommands::Sync => run_sync()
+            KubernetesSubcommands::Sync { no_backup } => run_sync(!no_backup)
                 .await
-                .expect("Unable to sync clusters due to errors"),
-            KubernetesSubcommands::Test => {
-                let test = get_local_clusters();
-                for cluster in test.iter() {
-                    println!("Id: {}\tName:{}", cluster.id, cluster.name);
-                }
-            }
+                .context("Unable to sync clusters due to errors")?,
+            KubernetesSubcommands::Cleanup { no_backup } => run_cleanup(!no_backup)
+                .context("Unable to cleanup local kubeconfig due to errors")?,
         }
 
         Ok(())
     }
 }
 
-async fn run_sync() -> eyre::Result<()> {
+async fn run_sync(kubeconfig_backup: bool) -> eyre::Result<()> {
     println!("{}", "Depending on your OS, you have to confirm or enter your password to access the credential store to retrieve the necessary access tokens [ENTER]".bright_green());
     let buffer = &mut [0u8];
     std::io::stdin().read_exact(buffer).unwrap();
 
     let rancher_token = get_rancher_token()?;
     let rancher_clusters = get_rancher_clusters(&rancher_token).await;
-    let local_clusters = get_local_clusters();
+    let local_clusters = get_local_clusters()?;
 
     if rancher_clusters.is_empty() {
         println!("{}", "No clusters found to sync".red());
@@ -123,10 +125,11 @@ async fn run_sync() -> eyre::Result<()> {
     }
 
     let selected_actions = MultiSelect::new()
-        .with_prompt("Select clusters to sync (Ctrl + C to abort)")
+        .with_prompt("Select ([SPACE]) the clusters to sync ([Ctrl + C] to abort)")
         .items(&cluster_synch_actions)
         .interact()
         .unwrap();
+    println!();
 
     if selected_actions.is_empty() {
         println!("{}", "No sync action selected.".red());
@@ -141,78 +144,100 @@ async fn run_sync() -> eyre::Result<()> {
 
         match action {
             SyncAction::Create => {
-                create_kubeconfig_entry(remote_cluster.as_ref().unwrap(), &rancher_token).await?
+                create_kubeconfig_entry(
+                    remote_cluster.as_ref().unwrap(),
+                    &rancher_token,
+                    kubeconfig_backup,
+                )
+                .await?
             }
             SyncAction::Update => {
                 update_kubeconfig_entry(
                     local_cluster.as_ref().unwrap(),
                     remote_cluster.as_ref().unwrap(),
                     &rancher_token,
+                    kubeconfig_backup,
                 )
                 .await?
             }
-            SyncAction::Delete => delete_kubeconfig_entry(local_cluster.as_ref().unwrap())?,
+            SyncAction::Delete => {
+                delete_kubeconfig_entry(local_cluster.as_ref().unwrap(), kubeconfig_backup)?
+            }
         }
     }
+
+    println!(
+        "{}",
+        "kubeconfig has successfully be synced with the selected Rancher clusters".green()
+    );
 
     Ok(())
 }
 
-fn get_rancher_token() -> Result<String> {
-    let entry = Entry::new(KEYRING_SERVICE_ID, KEYRING_KEY)?;
-    entry.get_password()
-}
+fn run_cleanup(kubeconfig_backup: bool) -> eyre::Result<()> {
+    let mut kubeconfig = read_kubeconfig()?;
+    let clusters: Vec<String> = kubeconfig
+        .clusters
+        .iter()
+        .map(|c| c.name.to_string())
+        .collect();
 
-async fn get_rancher_clusters(rancher_token: &str) -> Vec<Cluster> {
-    let rancher_client = RancherClient::new(
-        rancher_token.to_string(),
-        String::from(&get_config().rancher_base_url),
+    if clusters.is_empty() {
+        println!(
+            "{}",
+            "Your kubeconfig is currently empty. Nothing to clean up.".green()
+        );
+        return Ok(());
+    }
+
+    let mut selected_clusters = MultiSelect::new()
+        .with_prompt("Select ([SPACE]) the clusters to delete ([Ctrl + C] to abort)")
+        .items(&clusters)
+        .interact()
+        .unwrap();
+    println!();
+
+    if selected_clusters.is_empty() {
+        println!(
+            "{}",
+            "There are no clusters found to clean up in your local kubeconfig".green()
+        );
+    }
+
+    selected_clusters.sort_by(|a, b| b.cmp(a));
+    for cluster_index in selected_clusters {
+        let cluster_name = &kubeconfig.clusters[cluster_index].name.to_string();
+
+        kubeconfig.clusters.retain(|c| c.name.ne(cluster_name));
+        kubeconfig.users.retain(|c| c.name.ne(cluster_name));
+        kubeconfig.contexts.retain(|c| c.name.ne(cluster_name));
+    }
+
+    write_kubeconfig(kubeconfig, kubeconfig_backup)?;
+    println!(
+        "{}",
+        "Your local kubeconfig has been cleaned up successfully".green()
     );
-    let clusters_result = rancher_client.clusters().await;
 
-    if let Ok(clusters) = clusters_result {
-        let clusters = clusters
-            .data
-            .into_iter()
-            .map(|c| Cluster {
-                id: c.id,
-                name: c.name[..c.name.len() - RANCHER_CLUSTER_SUFFIX_LENGTH].to_string(),
-                name_suffix: c.name[c.name.len() - RANCHER_CLUSTER_SUFFIX_LENGTH..].to_string(),
-                server: c
-                    .links
-                    .get("self")
-                    .unwrap()
-                    .replace("v3", "k8s")
-                    .to_string(),
-                token_url: Some(c.actions.get("generateKubeconfig").unwrap().to_string()),
-            })
-            .collect();
-
-        return clusters;
-    }
-
-    Vec::new()
+    Ok(())
 }
 
-fn get_local_clusters() -> Vec<Cluster> {
-    let kubeconfig_result = read_kubeconfig();
-    if let Ok(kubeconfig) = kubeconfig_result {
-        let local_clusters = kubeconfig
-            .clusters
-            .into_iter()
-            .map(|c| Cluster {
-                id: c.name.clone(),
-                name: c.name[..c.name.len() - RANCHER_CLUSTER_SUFFIX_LENGTH].to_string(),
-                name_suffix: c.name[c.name.len() - RANCHER_CLUSTER_SUFFIX_LENGTH..].to_string(),
-                server: c.cluster.server,
-                token_url: None,
-            })
-            .collect();
+fn get_local_clusters() -> eyre::Result<Vec<Cluster>> {
+    let kubeconfig = read_kubeconfig()?;
 
-        return local_clusters;
-    }
+    let local_clusters = kubeconfig
+        .clusters
+        .into_iter()
+        .map(|c| Cluster {
+            id: c.name.clone(),
+            name: c.name[..c.name.len() - RANCHER_CLUSTER_SUFFIX_LENGTH].to_string(),
+            name_suffix: c.name[c.name.len() - RANCHER_CLUSTER_SUFFIX_LENGTH..].to_string(),
+            server: c.cluster.server,
+            token_url: None,
+        })
+        .collect();
 
-    Vec::new()
+    Ok(local_clusters)
 }
 
 fn get_cluster_sync_actions(
@@ -276,6 +301,7 @@ fn get_cluster_sync_actions(
 async fn create_kubeconfig_entry(
     rancher_cluster: &Cluster,
     rancher_token: &String,
+    kubeconfig_backup: bool,
 ) -> eyre::Result<()> {
     let mut kubeconfig = read_kubeconfig()?;
     let name = &get_cluster_fullname(rancher_cluster);
@@ -324,13 +350,14 @@ async fn create_kubeconfig_entry(
         },
     });
 
-    write_kubeconfig(kubeconfig)
+    write_kubeconfig(kubeconfig, kubeconfig_backup)
 }
 
 async fn update_kubeconfig_entry(
     local_cluster: &Cluster,
     rancher_cluster: &Cluster,
     rancher_token: &String,
+    kubeconfig_backup: bool,
 ) -> eyre::Result<()> {
     let mut kubeconfig = read_kubeconfig()?;
     let token_url = rancher_cluster.token_url.as_ref().expect("");
@@ -366,10 +393,10 @@ async fn update_kubeconfig_entry(
             .to_string(),
     );
 
-    write_kubeconfig(kubeconfig)
+    write_kubeconfig(kubeconfig, kubeconfig_backup)
 }
 
-fn delete_kubeconfig_entry(local_cluster: &Cluster) -> eyre::Result<()> {
+fn delete_kubeconfig_entry(local_cluster: &Cluster, kubeconfig_backup: bool) -> eyre::Result<()> {
     let mut kubeconfig = read_kubeconfig()?;
 
     kubeconfig
@@ -382,7 +409,7 @@ fn delete_kubeconfig_entry(local_cluster: &Cluster) -> eyre::Result<()> {
         .users
         .retain(|c| c.name != get_cluster_fullname(local_cluster));
 
-    write_kubeconfig(kubeconfig)
+    write_kubeconfig(kubeconfig, kubeconfig_backup)
 }
 
 fn get_cluster_fullname(cluster: &Cluster) -> String {

@@ -1,0 +1,6 @@
+{
+"curl_api_config": [{
+"curl_api_key": "test",
+"curl_base_uri": "www.google.com"}
+]
+}

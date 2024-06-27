@@ -1,9 +1,11 @@
+use std::fs;
+use std::path::PathBuf;
+use std::time::SystemTime;
+
 use eyre::{Context, ContextCompat, Result};
 use homedir::get_my_home;
 use serde::{Deserialize, Serialize};
 use serde_yaml::{self, Value};
-use std::fs;
-use std::path::PathBuf;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct KubeConfig {
@@ -65,13 +67,18 @@ pub struct User {
     pub token: Option<String>,
 }
 
+pub struct KubeconfigPath {
+    pub path: PathBuf,
+    pub backup_path: PathBuf,
+}
+
 pub fn read_kubeconfig() -> Result<KubeConfig> {
     // Define the path to the kube config file
     let kube_config_path = get_kubeconfig_path();
 
     // Read the existing kube config file
-    let kube_config_content =
-        fs::read_to_string(kube_config_path?).with_context(|| "A valid kubeconfig must exist")?;
+    let kube_config_content = fs::read_to_string(kube_config_path?.path)
+        .with_context(|| "A valid kubeconfig must exist")?;
 
     // Parse the YAML content into a KubeConfig struct
     let kube_config: KubeConfig = serde_yaml::from_str(&kube_config_content)
@@ -80,20 +87,34 @@ pub fn read_kubeconfig() -> Result<KubeConfig> {
     Ok(kube_config)
 }
 
-pub fn write_kubeconfig(kube_config: KubeConfig) -> Result<()> {
+pub fn write_kubeconfig(kube_config: KubeConfig, backup: bool) -> Result<()> {
     // Serialize the updated config back to YAML
     let updated_kube_config_content = serde_yaml::to_string(&kube_config)?;
+    let kubeconfig_path = get_kubeconfig_path()?;
+
+    if backup {
+        fs::copy(&kubeconfig_path.path, &kubeconfig_path.backup_path)?;
+    }
 
     // Write the updated config back to the file
-    fs::write(get_kubeconfig_path()?, updated_kube_config_content)?;
+    fs::write(&kubeconfig_path.path, updated_kube_config_content)?;
 
     Ok(())
 }
 
-fn get_kubeconfig_path() -> Result<PathBuf> {
+pub fn get_kubeconfig_path() -> Result<KubeconfigPath> {
     let path = get_my_home()?
         .context("Could not get home directory")?
         .join(".kube/config");
 
-    Ok(path)
+    let timestamp = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)?
+        .as_secs()
+        .to_string();
+
+    let backup_path = get_my_home()?
+        .context("Could not get home directory")?
+        .join(format!(".kube/config.bak-{}", timestamp));
+
+    Ok(KubeconfigPath { path, backup_path })
 }
