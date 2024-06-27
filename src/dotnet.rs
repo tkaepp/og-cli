@@ -142,18 +142,17 @@ fn is_dotnet_installed() -> core::result::Result<DoctorSuccess, DoctorFailure> {
         .stderr(std::process::Stdio::null())
         .output();
 
-    let res = match cmd_result {
+    match cmd_result {
         core::result::Result::Ok(_) => core::result::Result::Ok(DoctorSuccess {
-            message: format!("dotnet is installed"),
+            message: "dotnet is installed".to_string(),
             plugin: "dotnet".to_string(),
         }),
         core::result::Result::Err(_) => core::result::Result::Err(DoctorFailure {
-            message: format!("Dotnet is not available. Make sure it is installed"),
+            message: "Dotnet is not available. Make sure it is installed".to_string(),
             plugin: "dotnet".to_string(),
             fix: None,
         }),
-    };
-    res
+    }
 }
 
 #[cfg(test)]
