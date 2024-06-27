@@ -53,8 +53,8 @@ async fn main() -> Result<()> {
         Commands::Sql(sql_command) => sql::Sql::run(sql_command).await?,
         Commands::Dotnet(command) => dotnet::Dotnet::run(command).expect("Reason"),
         Commands::Git(git_command) => git::Git::run(git_command),
-        Commands::Fix(fix_command) => {
-            fix::Fix::run(fix_command)?;
+        Commands::Fix(_) => {
+            fix::Fix::run()?;
         }
         Commands::Doctor(dr_command) => og_cli::doctor::run(dr_command),
         Commands::Kubernetes(kubernetes_command) => {
