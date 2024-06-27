@@ -2,6 +2,7 @@ use clap::{Parser, Subcommand};
 use eyre::Result;
 
 use og_cli::{config, search};
+use og_cli::dg::{DgCli, DgCommand};
 use og_cli::doctor::DoctorCommand;
 use og_cli::dotnet::{self, DotnetCommand};
 use og_cli::fix::{self, FixCommand};
@@ -43,6 +44,7 @@ enum Commands {
     #[clap(name = "graphql")]
     GraphQl(GraphQlCommand),
     Search(SearchCommand),
+    Dg(DgCommand),
 }
 
 #[tokio::main]
@@ -66,6 +68,10 @@ async fn main() -> Result<()> {
             GraphQl::run(graphql_command)?;
         }
         Commands::Search(search_command) => search::Search::run(search_command).await?,
+        // default is to forward unknown commands to the python dg cli
+        Commands::Dg(dg_command) => {
+            DgCli::run(dg_command)?;
+        }
     }
 
     Ok(())

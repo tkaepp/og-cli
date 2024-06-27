@@ -1,10 +1,13 @@
+use std::path::Path;
+
+use colored::Colorize;
+use eyre::Result;
+
 use crate::doctor::{DoctorFailure, DoctorSuccess};
 use crate::kube::kube_config::{get_kubeconfig_path, read_kubeconfig};
 use crate::kube::rancher::get_rancher_token;
 use crate::kube::Kubernetes;
 use crate::plugin::Plugin;
-use colored::Colorize;
-use std::path::Path;
 
 const PLUGIN_NAME: &str = "Kubernetes";
 
@@ -20,8 +23,8 @@ impl Plugin for Kubernetes {
 
 impl Kubernetes {
     fn is_kubeconfig_existing() -> Result<DoctorSuccess, DoctorFailure> {
-        let path = get_kubeconfig_path();
-        if Path::new(path.unwrap().as_path()).exists() {
+        let path = get_kubeconfig_path().unwrap().path;
+        if Path::new(path.as_path()).exists() {
             return Ok(DoctorSuccess {
                 message: format!("{}", "kubeconfig has been found".green()),
                 plugin: PLUGIN_NAME.to_string(),

@@ -10,8 +10,8 @@ use crate::get_config;
 use crate::kube::KubeConfig;
 
 #[derive(Deserialize)]
+
 struct GenerateKubeconfigResponse {
-    #[serde(rename = "baseType")]
     config: String,
 }
 
