@@ -50,14 +50,14 @@ pub fn run(dr_command: DoctorCommand) {
     for result in doctor_result_with_fixes.iter() {
         match result {
             Ok(res) => {
-                print!("✅ {}: {}\n", res.plugin, res.message)
+                println!("✅ {}: {}", res.plugin, res.message)
             }
             Err(res) => match res {
                 (x, Some(r)) => match r {
-                    Ok(_) => print!("✅ Fixed {}: {}\n", x.plugin, x.message),
-                    Err(y) => print!("❌ Could not fix {}: {} : {}\n", x.plugin, x.message, y),
+                    Ok(_) => println!("✅ Fixed {}: {}", x.plugin, x.message),
+                    Err(y) => println!("❌ Could not fix {}: {} : {}", x.plugin, x.message, y),
                 },
-                (x, None) => print!("❌ {}: {}\n", x.plugin, res.0.message),
+                (x, None) => println!("❌ {}: {}", x.plugin, res.0.message),
             },
         }
     }
