@@ -23,19 +23,19 @@ impl Fix {
                 let rc_dir = get_my_home()?
                     .context("Could not get home directory")?
                     .join(".dgrc");
-                fs::remove_file(rc_dir);
+                let _ = fs::remove_file(rc_dir);
                 let cli_dir = get_my_home()?
                     .context("Could not get home directory")?
                     .join(".dg-cli");
-                fs::remove_dir_all(cli_dir);
+                let _ = fs::remove_dir_all(cli_dir);
                 let localdg_dir = get_my_home()?
                     .context("Could not get home directory")?
                     .join(".local/bin/dg");
-                fs::remove_dir_all(localdg_dir);
+                let _ = fs::remove_dir_all(localdg_dir);
                 let pipx_dir = get_my_home()?
                     .context("Could not get home directory")?
                     .join(".local/pipx");
-                fs::remove_dir_all(pipx_dir);
+                let _ = fs::remove_dir_all(pipx_dir);
                 println!("attempting to reinstall pipx");
                 let uninstallstatus = Command::new("brew")
                     .arg("uninstall")

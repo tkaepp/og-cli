@@ -1,6 +1,7 @@
 use std::env;
 
 use clap::{CommandFactory, Parser, Subcommand};
+use clap::error::ErrorKind;
 use eyre::Result;
 
 use og_cli::dg::{DgCli, DgCommand};
@@ -66,7 +67,7 @@ async fn main() -> Result<()> {
         Ok(c) => {
             match c.command {
                 Some(Commands::MongoDb(mongodb_command)) => mongo_db::MongoDb::run(mongodb_command),
-                Some(Commands::Sql(sql_command))=> sql::Sql::run(sql_command).await?,
+                Some(Commands::Sql(sql_command)) => sql::Sql::run(sql_command).await?,
                 Some(Commands::Dotnet(command)) => dotnet::Dotnet::run(command).expect("Reason"),
                 Some(Commands::Git(git_command)) => git::Git::run(git_command),
                 Some(Commands::Fix(_)) => {
@@ -79,14 +80,16 @@ async fn main() -> Result<()> {
                 Some(Commands::GraphQl(graphql_command)) => {
                     GraphQl::run(graphql_command)?;
                 }
-                Some(Commands::Search(search_command)) => search::Search::run(search_command).await?,// default is to forward unknown commands to the python dg cli
+                Some(Commands::Search(search_command)) => {
+                    search::Search::run(search_command).await?
+                } // default is to forward unknown commands to the python dg cli
                 Some(Commands::Dg(dg_command)) => {
                     DgCli::run(dg_command)?;
                 }
                 None => {
                     let mut cmd = Cli::command();
                     cmd.build();
-                    cmd.print_help();
+                    let _ = cmd.print_help();
                     std::process::exit(0);
                 }
             }
@@ -97,16 +100,20 @@ async fn main() -> Result<()> {
             let mut cmd = Cli::command();
             cmd.build();
 
-
-            if args.is_empty(){
-                e.exit();
-            }else if args.len() == 1 && args.iter().any(|x| x == "--help" || x == "-h"){
-                cmd.print_help();
+            if e.kind() == ErrorKind::DisplayHelpOnMissingArgumentOrSubcommand || e.kind() == ErrorKind::DisplayHelp {
+                e.print()?;
                 std::process::exit(0);
-            }else if args.len() == 1 && args.iter().any(|x| x == "--version" || x == "-v"){
+            }
+
+            if args.is_empty() {
+                e.exit();
+            } else if args.len() == 1 && args.iter().any(|x| x == "--help" || x == "-h") {
+                let _ = cmd.print_help();
+                std::process::exit(0);
+            } else if args.len() == 1 && args.iter().any(|x| x == "--version" || x == "-v") {
                 println!("{}", cmd.render_long_version());
                 std::process::exit(0);
-            }else{
+            } else {
                 DgCli::run_from_plain_args(args)?;
             }
         }
