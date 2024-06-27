@@ -29,24 +29,24 @@ pub fn run(dr_command: DoctorCommand) {
         Box::new(kubernetes::Kubernetes),
         Box::new(dotnet::Dotnet),
     ];
-    let mut results: Vec<(Result<DoctorSuccess, DoctorFailure>, Option<Result<(), String>>)> = Vec::new();
+    let mut results: Vec<Result<DoctorSuccess, (DoctorFailure, Option<Result<(), String>>)>> = Vec::new();
 
     for plugin in &plugins {
         let doctor_result = &mut plugin.doctor();
-        let doctor_result_with_fixes: Vec<(Result<DoctorSuccess, DoctorFailure>, Option<Result<(), String>>)> = doctor_result
-            .iter()
-            .map(|r| 
-                r.map(|o| (o, None))
-                .map_err(|e| 
-                        match dr_command.apply_fixes {
-                            false => (e, None),
-                            true => match e.fix {
-                                None => (e, None),
-                                Some(f) => (e, Some((f)()))
-                            }
-                        }))
-            .collect();
-        results.append(& mut doctor_result_with_fixes);
+        let doctor_result_with_fixes: Vec<Result<DoctorSuccess, (DoctorFailure, Option<Result<(), String>>)>> =
+            doctor_result
+                .iter()
+                .map(|r| {
+                    r.map_err(|e| match dr_command.apply_fixes {
+                        false => (e, None),
+                        true => match e.fix {
+                            None => (e, None),
+                            Some(f) => (e, Some((f)())),
+                        },
+                    })
+                })
+                .collect();
+        results.append(&mut doctor_result_with_fixes);
     }
 
     for result in results.iter() {
@@ -54,24 +54,13 @@ pub fn run(dr_command: DoctorCommand) {
             Ok(res) => {
                 print!("✅ {}: {}\n", res.plugin, res.message)
             }
-            Err(res) => {
-                print!("❌ {}: {}\n", res.plugin, res.message)
-            }
-        }
-    }
-
-    for result in results.iter() {
-        match result {
-            Ok(res) => {
-                print!("✅ {}: {}\n", res.plugin, res.message)
-            }
-            Err(res) if dr_command.apply_fixes == false => {
-                print!("❌ {}: {}\n", res.plugin, res.message)
-            }
-            Err(res) if dr_command.apply_fixes == true => {
-                print!("❌ {}: {}\n", res.plugin, res.message);
-            }
-            _ => {}
+            Err(res) => match res {
+                (x, Some(r)) => match r {
+                    Ok(_) => print!("✅ Fixed {}: {}\n", x.plugin, x.message),
+                    Err(y) => print!("❌ Could not fix {}: {} : {}\n", x.plugin, x.message, y),
+                },
+                (x, None) => print!("❌ {}: {}\n", res.0.plugin, res.0.message),
+            },
         }
     }
 }
