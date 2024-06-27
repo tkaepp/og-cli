@@ -40,7 +40,7 @@ fn add_keys_github() -> Result<()> {
 }
 
 #[cfg(target_family = "windows")]
-fn add_keys_github(p0: Vec<PublicKey>) -> Result<()> {
+fn add_keys_github() -> Result<()> {
     // Command::new("cmd")
     //     .args(["/C", "gh ssh-key add ~/.ssh/og-ssh.pub -t og"])
     //     .output()
@@ -106,6 +106,11 @@ fn ensure_ssh_keys() -> Result<Vec<PublicKey>> {
 
         return Ok(selection.iter().map(|r| public_keys[*r].clone()).collect());
     }
+}
+
+#[cfg(target_family = "windows")]
+fn ensure_ssh_keys() -> Result<Vec<PublicKey>> {
+    Ok(vec![])
 }
 
 #[cfg(target_family = "windows")]
