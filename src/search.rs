@@ -1,6 +1,5 @@
 use std::{collections::HashMap, default, io::Write};
 
-use crate::{config::Curl_Api_Config, plugin::Plugin};
 use curl::easy::{Easy, List};
 use json_to_table::json_to_table;
 
@@ -8,10 +7,58 @@ use clap::{Args, Subcommand, ValueEnum};
 use json::object;
 use serde_json::Value;
 
-use crate::config::{self, Language, Portal};
+use crate::config::{self};
 use eyre::Result;
 
 pub struct Search;
+
+#[derive(Clone, Debug, ValueEnum)]
+pub enum Language {
+    LanguageDe,
+    LanguageEn,
+    LanguageFr,
+    LanguageIt,
+    LanguageNl,
+}
+
+impl Language {
+    pub fn get_language_code(&self) -> &str {
+        match self {
+            Language::LanguageDe => "de-CH",
+            Language::LanguageEn => "en-US",
+            Language::LanguageFr => "fr-CH",
+            Language::LanguageIt => "it-CH",
+            Language::LanguageNl => "de-CH",
+        }
+    }
+}
+
+#[derive(Clone, Debug, ValueEnum)]
+pub enum Portal {
+    PortalChGalaxus,
+    PortalChDigitec,
+    PortalDe,
+    PortalIt,
+    PortalFr,
+    PortalNl,
+    PortalBe,
+    PortalAt,
+}
+
+impl Portal {
+    pub fn get_portal_id(&self) -> i8 {
+        match self {
+            Portal::PortalChGalaxus => 22,
+            Portal::PortalChDigitec => 25,
+            Portal::PortalDe => 27,
+            Portal::PortalAt => 28,
+            Portal::PortalIt => 35,
+            Portal::PortalFr => 32,
+            Portal::PortalNl => 33,
+            Portal::PortalBe => 34,
+        }
+    }
+}
 
 #[derive(Args, Debug)]
 pub struct SearchCommand {
