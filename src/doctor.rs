@@ -1,7 +1,7 @@
 use clap::Args;
 
 use crate::plugin::Plugin;
-use crate::{dotnet, fix, git, kube, mongo_db};
+use crate::{dotnet, fix, git, kube, mongo_db, sql};
 
 #[derive(Args)]
 pub struct DoctorCommand {
@@ -25,6 +25,7 @@ pub fn run(dr_command: DoctorCommand) {
         Box::new(fix::Fix),
         Box::new(git::Git),
         Box::new(mongo_db::MongoDb),
+        Box::new(sql::Sql),
         Box::new(kube::Kubernetes),
         Box::new(dotnet::Dotnet),
     ];
