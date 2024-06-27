@@ -91,7 +91,7 @@ async fn main() -> Result<()> {
                     DgCli::run(dg_command)?;
                 }
                 Some(Commands::Network(network_command)) => {
-                    Network::run(network_command)?;
+                    Network::run(network_command);
                 }
                 None => {
                     let mut cmd = Cli::command();

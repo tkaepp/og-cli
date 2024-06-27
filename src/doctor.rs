@@ -3,7 +3,7 @@ use std::process::Command;
 use clap::Args;
 
 use crate::plugin::Plugin;
-use crate::{dotnet, fix, git, kube, mongo_db, sql};
+use crate::{dotnet, fix, git, kube, mongo_db, network, sql};
 
 #[derive(Args)]
 pub struct DoctorCommand {
@@ -30,6 +30,7 @@ pub fn run(dr_command: DoctorCommand) {
         Box::new(sql::Sql),
         Box::new(kube::Kubernetes),
         Box::new(dotnet::Dotnet),
+        Box::new(network::Network),
     ];
 
     let doc_res: Vec<Result<DoctorSuccess, DoctorFailure>> =
@@ -72,7 +73,7 @@ pub fn is_command_in_path(command: &str) -> Result<DoctorSuccess, DoctorFailure>
         .spawn()
     {
         Ok(_) => Ok(DoctorSuccess {
-            message: format!("{} is installed", command),
+            message: "is installed".to_string(),
             plugin: command.to_string(),
         }),
         Err(_) => Err(DoctorFailure {
