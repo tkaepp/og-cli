@@ -1,16 +1,19 @@
 use std::collections::HashMap;
 
-use crate::get_config;
 use bollard::container::{
     Config, CreateContainerOptions, RestartContainerOptions, StartContainerOptions,
 };
-use bollard::image::CreateImageOptions;
-use bollard::models::ContainerStateStatusEnum::{EMPTY, EXITED, RUNNING};
-use bollard::models::{ContainerStateStatusEnum, HostConfig, PortBinding};
 use bollard::Docker;
+use bollard::image::CreateImageOptions;
+use bollard::models::{ContainerStateStatusEnum, HostConfig, PortBinding};
+use bollard::models::ContainerStateStatusEnum::{EMPTY, EXITED, RUNNING};
 use clap::{Args, Subcommand};
 use eyre::Result;
 use futures_util::TryStreamExt;
+use crate::common_docker::DockerCompose;
+use crate::doctor::{DoctorFailure, DoctorSuccess};
+use crate::get_config;
+use crate::plugin::Plugin;
 
 pub struct Sql;
 
@@ -31,6 +34,25 @@ pub enum SqlSubcommands {
     Stop,
     Remove,
     Status,
+}
+
+impl Plugin for Sql {
+    fn doctor(&self) -> Vec<std::result::Result<DoctorSuccess, DoctorFailure>> {
+        let is_running =  DockerCompose::is_running();
+        return vec![
+            match is_running {
+            true => {
+                Ok(DoctorSuccess {
+                    message: "Docker daemon is running".to_string(),
+                    plugin: "Sql".into(),
+                })
+            }
+            false => Err(DoctorFailure {
+                message: "Docker daemon is not running or might not be installed".to_string(),
+                plugin: "Sql".into(),
+            }),
+        }]
+    }
 }
 
 impl Sql {
