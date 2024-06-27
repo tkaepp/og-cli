@@ -5,12 +5,10 @@ use serde::Deserialize;
 use serde_json::{self};
 use serde_yaml::{self};
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 struct GenerateKubeconfigResponse {
     #[serde(rename = "baseType")]
-    base_type: String,
     config: String,
-    r#type: String,
 }
 
 pub async fn get_rancher_kubeconfig(
