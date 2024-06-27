@@ -1,79 +1,63 @@
-use clap::ValueEnum;
+use std::{
+    fs::{self, File},
+    io::copy,
+    path::Path,
+    sync::OnceLock,
+};
+
+use eyre::{eyre, Context, ContextCompat, Result};
+use figment::{
+    providers::{Format, Json},
+    Figment,
+};
+use homedir::get_my_home;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+const CONFIG_URL: &str =
+    "https://dg-package-repositories.platform.test.int.devinite.com/og-cli/config.json";
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
     pub sql_password: String,
-    pub curl_api_config : Vec<Curl_Api_Config>
+    pub rancher_base_url: String,
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct Curl_Api_Config {
-    pub curl_api_key: String,
-    pub curl_base_uri: String,
-}
+pub async fn init_config() -> Result<()> {
+    let og_dir = get_my_home()?
+        .context("Could not get home directory")?
+        .join(".og-cli");
+    fs::create_dir_all(&og_dir)?;
 
-#[derive(Serialize, Deserialize)]
-pub struct Search_Api_Config {
-    pub curl_api_key: String,
-    pub curl_base_uri: String,
-}
+    let ogrc = og_dir.join(".ogrc.json");
 
-impl Default for Config {
-    fn default() -> Self {
-        Config {
-            sql_password: "thats_not_it".into(),
-            curl_api_config: vec![]
-        }
+    if !ogrc.exists() {
+        println!("Config doesn't exist yet, fetching from {CONFIG_URL}");
+        download_config(&ogrc)
+            .await
+            .context("Unable to fetch config, are you connected to the VPN?")?;
     }
+
+    let config: Config = Figment::new().merge(Json::file(&ogrc)).extract()?;
+    CONFIG
+        .set(config)
+        .map_err(|_| eyre!("Failed to set config"))?;
+
+    Ok(())
 }
 
+async fn download_config(destination: &Path) -> Result<()> {
+    let content = reqwest::get(CONFIG_URL)
+        .await?
+        .error_for_status()?
+        .text()
+        .await?;
+    copy(&mut content.as_bytes(), &mut File::create(destination)?)?;
 
-
-#[derive(Clone, Debug, ValueEnum)]
-pub enum Language {
-    LanguageDe,
-    LanguageEn,
-    LanguageFr,
-    LanguageIt,
-    LanguageNl,
+    Ok(())
 }
 
-impl Language {
-    pub fn get_language_code(&self) -> &str {
-        match self {
-            Language::LanguageDe => "de-CH",
-            Language::LanguageEn => "en-US",
-            Language::LanguageFr => "fr-CH",
-            Language::LanguageIt => "it-CH",
-            Language::LanguageNl => "de-CH",
-        }
-    }
+pub fn get_config() -> &'static Config {
+    CONFIG.get().expect("Config not initialized")
 }
 
-#[derive(Clone, Debug, ValueEnum)]
-pub enum Portal {
-    PortalChGalaxus,
-    PortalChDigitec,
-    PortalDe,
-    PortalIt,
-    PortalFr,
-    PortalNl,
-    PortalBe,
-    PortalAt,
-}
-
-impl Portal {
-    pub fn get_portal_id(&self) -> i8 {
-        match self {
-            Portal::PortalChGalaxus => 22,
-            Portal::PortalChDigitec => 25,
-            Portal::PortalDe => 27,
-            Portal::PortalAt => 28,
-            Portal::PortalIt => 35,
-            Portal::PortalFr => 32,
-            Portal::PortalNl => 33,
-            Portal::PortalBe => 34,
-        }
-    }
-}
+pub static CONFIG: OnceLock<Config> = OnceLock::new();

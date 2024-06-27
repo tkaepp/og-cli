@@ -11,7 +11,7 @@ pub struct DockerCompose {
 impl DockerCompose {
     pub fn new(compose_string: String) -> DockerCompose {
         let mut file = NamedTempFile::new().unwrap_or_else(|err| {
-            println!("{err}");
+            println!("Could not create a temp file{}", err);
             process::exit(1)
         });
         write!(file, "{}", compose_string).unwrap_or_else(|err| {
@@ -59,10 +59,8 @@ impl DockerCompose {
     }
 
     pub fn is_running() -> bool {
-        let command = Command::new("docker")
-            .args(["info"])
-            .output();
-        
+        let command = Command::new("docker").args(["info"]).output();
+
         let stderr = String::from_utf8(command.unwrap().stderr).unwrap();
 
         if stderr.contains("Cannot connect to the Docker daemon") {
@@ -198,7 +196,10 @@ impl Service {
             Some(volumes) => {
                 service_vec.push(indent(String::from("volumes:")));
                 for volume in volumes.iter() {
-                    service_vec.push(indent(format!("- {}:{}", volume.volume_name, volume.bind)))
+                    service_vec.push(indent(format!(
+                        "- {}:{}:{}",
+                        volume.volume_name, volume.bind, volume.mode
+                    )))
                 }
             }
             None => (),

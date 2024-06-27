@@ -1,8 +1,10 @@
 use std::collections::HashMap;
-use crate::{common_docker::DockerComposeBuilder, plugin::Plugin};
 
 use clap::{Args, Subcommand};
+
 use crate::common_docker::{DockerCompose, Volume};
+use crate::doctor::{DoctorFailure, DoctorSuccess};
+use crate::{common_docker::DockerComposeBuilder, plugin::Plugin};
 
 pub struct MongoDb;
 
@@ -13,13 +15,28 @@ pub struct MongoDbCommand {
 }
 
 impl Plugin for MongoDb {
-    fn doctor(&self) {
-        println!("Running the MongoDB doctor");
+    fn doctor(&self) -> Vec<Result<DoctorSuccess, DoctorFailure>> {
+        let mut result = Vec::new();
+
         if DockerCompose::is_running() {
-            println!("✅︎ Docker daemon is running")
+            result.insert(
+                result.len(),
+                Ok(DoctorSuccess {
+                    message: "Docker daemon is running".into(),
+                    plugin: "MongoDB".into(),
+                }),
+            );
         } else {
-            println!("❌ Docker daemon is not running")
+            result.insert(
+                result.len(),
+                Err(DoctorFailure {
+                    message: "Docker daemon is not running".into(),
+                    plugin: "MongoDB".into(),
+                }),
+            );
         }
+
+        result
     }
 }
 
@@ -34,12 +51,15 @@ impl MongoDb {
         port_mapping.insert(27017, 27017);
 
         let mut volumes = Vec::new();
-        volumes.insert(0, Volume {
-            volume_name: "mongodb-data".into(),
-            volume_type: "volume".into(),
-            bind: "/data/db".into(),
-            mode: "rw".into()
-        });
+        volumes.insert(
+            0,
+            Volume {
+                volume_name: "mongodb-data".into(),
+                volume_type: "volume".into(),
+                bind: "/data/db".into(),
+                mode: "rw".into(),
+            },
+        );
 
         let compose = DockerComposeBuilder::new()
             .add_service(
@@ -48,7 +68,7 @@ impl MongoDb {
                 None,
                 Some(environment),
                 Some(port_mapping),
-                Some(volumes)
+                Some(volumes),
             )
             .build();
         match mongodb_cmd {
