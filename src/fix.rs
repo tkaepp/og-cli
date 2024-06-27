@@ -77,6 +77,7 @@ impl Fix {
                             .expect("python3 command failed to start");
 
                             println!("cli install finished with: {clistatus}");
+                        fs::remove_file("install.py");
 
                     },
                     "windows"=>{
