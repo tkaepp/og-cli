@@ -4,6 +4,7 @@ version = "0.4.0"
 edition = "2021"
 authors = ["Digitec Galaxus OGs"]
 repository = "https://github.com/tkaepp/og-cli"
+description = "The CLI for DG OGs"
 
 [package.metadata.wix]
 upgrade-guid = "AC41557C-5BC2-4191-BF43-66692C85C3D0"
