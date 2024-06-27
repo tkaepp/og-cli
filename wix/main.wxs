@@ -69,6 +69,7 @@
 
         <Package Id='*'
             Keywords='Installer'
+            Description='The CLI for DG OGs'
             Manufacturer='Digitec Galaxus OGs'
             InstallerVersion='450'
             Languages='1033'
