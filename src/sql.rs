@@ -38,18 +38,21 @@ pub enum SqlSubcommands {
 
 impl Plugin for Sql {
     fn doctor(&self) -> Vec<std::result::Result<DoctorSuccess, DoctorFailure>> {
-        let is_running = DockerCompose::is_running();
-        return vec![match is_running {
-            true => Ok(DoctorSuccess {
-                message: "Docker daemon is running".to_string(),
-                plugin: "Sql".into(),
-            }),
+        let is_running =  DockerCompose::is_running();
+        vec![
+            match is_running {
+            true => {
+                Ok(DoctorSuccess {
+                    message: "Docker daemon is running".to_string(),
+                    plugin: "Sql".into(),
+                })
+            }
             false => Err(DoctorFailure {
                 message: "Docker daemon is not running or might not be installed".to_string(),
                 plugin: "Sql".into(),
                 fix: None,
             }),
-        }];
+        }]
     }
 }
 
@@ -189,7 +192,11 @@ async fn create_and_run_container(docker: Docker) -> Result<()> {
     let mut stream = docker.create_image(image_options, None, None);
 
     while let Some(output) = stream.try_next().await? {
-        println!("{:?} - {:?}", output.status, output.progress);
+        if output.error.is_some() {
+            println!("{}", output.error.unwrap_or_else(|| "".to_string()));
+        } else {
+            println!("{} {}", output.status.unwrap_or_else(|| "".to_string()), output.progress.unwrap_or_else(|| "".to_string()));
+        }
     }
 
     let result = docker.create_container(options, creation_config).await?;
