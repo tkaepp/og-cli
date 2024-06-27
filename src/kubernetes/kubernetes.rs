@@ -149,7 +149,7 @@ async fn run_sync() -> eyre::Result<()> {
                     remote_cluster.as_ref().unwrap(),
                     &rancher_token,
                 )
-                    .await?
+                .await?
             }
             SyncAction::Delete => delete_kubeconfig_entry(local_cluster.as_ref().unwrap())?,
         }
@@ -286,7 +286,13 @@ async fn create_kubeconfig_entry(
         name: name.to_string(),
         cluster: kube_config::Cluster {
             certificate_authority_data: None,
-            server: rancher_kubeconfig.clusters.first().unwrap().cluster.server.to_string(),
+            server: rancher_kubeconfig
+                .clusters
+                .first()
+                .unwrap()
+                .cluster
+                .server
+                .to_string(),
         },
     });
 
@@ -302,7 +308,17 @@ async fn create_kubeconfig_entry(
     kubeconfig.users.push(NamedUser {
         name: name.to_string(),
         user: User {
-            token: Some(rancher_kubeconfig.users.first().unwrap().user.token.as_ref().unwrap().to_string()),
+            token: Some(
+                rancher_kubeconfig
+                    .users
+                    .first()
+                    .unwrap()
+                    .user
+                    .token
+                    .as_ref()
+                    .unwrap()
+                    .to_string(),
+            ),
             client_certificate_data: None,
             client_key_data: None,
         },
@@ -311,16 +327,44 @@ async fn create_kubeconfig_entry(
     write_kubeconfig(kubeconfig)
 }
 
-async fn update_kubeconfig_entry(local_cluster: &Cluster, rancher_cluster: &Cluster, rancher_token: &String) -> eyre::Result<()> {
+async fn update_kubeconfig_entry(
+    local_cluster: &Cluster,
+    rancher_cluster: &Cluster,
+    rancher_token: &String,
+) -> eyre::Result<()> {
     let mut kubeconfig = read_kubeconfig()?;
     let token_url = rancher_cluster.token_url.as_ref().expect("");
     let rancher_kubeconfig = get_rancher_kubeconfig(token_url.to_string(), rancher_token).await?;
 
-    let cluster_pos = kubeconfig.clusters.iter().position(|c| c.name == local_cluster.id).unwrap();
-    kubeconfig.clusters[cluster_pos].cluster.server = rancher_kubeconfig.clusters.first().unwrap().cluster.server.to_string();
+    let cluster_pos = kubeconfig
+        .clusters
+        .iter()
+        .position(|c| c.name == local_cluster.id)
+        .unwrap();
+    kubeconfig.clusters[cluster_pos].cluster.server = rancher_kubeconfig
+        .clusters
+        .first()
+        .unwrap()
+        .cluster
+        .server
+        .to_string();
 
-    let user_pos = kubeconfig.users.iter().position(|u| u.name == local_cluster.id).unwrap();
-    kubeconfig.users[user_pos].user.token = Some(rancher_kubeconfig.users.first().unwrap().user.token.as_ref().unwrap().to_string());
+    let user_pos = kubeconfig
+        .users
+        .iter()
+        .position(|u| u.name == local_cluster.id)
+        .unwrap();
+    kubeconfig.users[user_pos].user.token = Some(
+        rancher_kubeconfig
+            .users
+            .first()
+            .unwrap()
+            .user
+            .token
+            .as_ref()
+            .unwrap()
+            .to_string(),
+    );
 
     write_kubeconfig(kubeconfig)
 }

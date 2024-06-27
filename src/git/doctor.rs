@@ -2,7 +2,7 @@ use std::process::Command;
 
 use crate::doctor::{DoctorFailure, DoctorSuccess};
 use crate::git::Git;
-use crate::plugin::{DoctorFix, Plugin};
+use crate::plugin::Plugin;
 
 impl Plugin for Git {
     fn doctor(&self) -> Vec<Result<DoctorSuccess, DoctorFailure>> {
@@ -15,22 +15,14 @@ impl Plugin for Git {
     }
 }
 
-impl DoctorFix for Git {
-    fn apply_fix(&self) -> Vec<Result<DoctorSuccess, DoctorFailure>> {
-        let entry = "push.autoSetupRemote";
-        let mut config = git2::Config::open_default().expect("git config lookup failed!");
+fn apply_fix_config() -> Result<(), String> {
+    let entry = "push.autoSetupRemote";
+    let mut config = git2::Config::open_default().expect("git config lookup failed!");
 
-        let result = config
-            .set_bool(entry, true)
-            .map(|x| DoctorSuccess {
-                message: format!("fix executed for {}", "push.autoSetupRemote"),
-                plugin: "git - config".into(),
-            })
-            .map_err(|x| DoctorFailure {
-                message: format!("fix failed for {}", "push.autoSetupRemote"),
-                plugin: "git - config".into(),
-            });
-        vec![result]
+    let result = config.set_bool(entry, true);
+    match result {
+        Ok(_) => Ok(()),
+        Err(_) => Err("git config lookup failed".into()),
     }
 }
 
@@ -46,10 +38,12 @@ impl Git {
             Ok(c) if c == false => Err(DoctorFailure {
                 message: format!("{} is not configured wrong with {}", entry, c.to_string()),
                 plugin: "git - config".into(),
+                fix: Some(Box::new(apply_fix_config)),
             }),
             _ => Err(DoctorFailure {
                 message: format!("{} is not configured wrong.", entry),
                 plugin: "git - config".into(),
+                fix: Some(Box::new(apply_fix_config)),
             }),
         }
     }
@@ -70,6 +64,10 @@ impl Git {
                     command
                 ),
                 plugin: command.to_string(),
+                fix: Some(Box::new(|| {
+                    println!("Please installed");
+                    false
+                })),
             }),
         };
         res
