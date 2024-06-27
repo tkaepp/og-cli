@@ -90,7 +90,7 @@ pub fn write_kubeconfig(kube_config: KubeConfig) -> Result<()> {
     Ok(())
 }
 
-fn get_kubeconfig_path() -> Result<PathBuf> {
+pub fn get_kubeconfig_path() -> Result<PathBuf> {
     let path = get_my_home()?
         .context("Could not get home directory")?
         .join(".kube/config");

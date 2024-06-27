@@ -4,28 +4,26 @@ use std::io::Read;
 use clap::{Args, Subcommand};
 use colored::Colorize;
 use dialoguer::MultiSelect;
-use keyring::{Entry, Result};
-use rancher::RancherClient;
+use keyring::Result;
 
-use crate::get_config;
 use crate::kube::kube_config;
 use crate::kube::kube_config::*;
 use crate::kube::rancher::*;
 
-const KEYRING_SERVICE_ID: &str = "dg_cli_plugin_kube";
-const KEYRING_KEY: &str = "rancher_token";
-const RANCHER_CLUSTER_SUFFIX_LENGTH: usize = 3;
-const RANCHER_CLUSTER_PREFIX: &str = "dg-";
+pub const KEYRING_SERVICE_ID: &str = "dg_cli_plugin_kube";
+pub const KEYRING_KEY: &str = "rancher_token";
+pub const RANCHER_CLUSTER_SUFFIX_LENGTH: usize = 3;
+pub const RANCHER_CLUSTER_PREFIX: &str = "dg-";
 
 pub struct Kubernetes;
 
 #[derive(Clone)]
-struct Cluster {
-    id: String,
-    name: String,
-    name_suffix: String,
-    server: String,
-    token_url: Option<String>,
+pub struct Cluster {
+    pub id: String,
+    pub name: String,
+    pub name_suffix: String,
+    pub server: String,
+    pub token_url: Option<String>,
 }
 
 #[derive(Debug)]
@@ -156,42 +154,6 @@ async fn run_sync() -> eyre::Result<()> {
     }
 
     Ok(())
-}
-
-fn get_rancher_token() -> Result<String> {
-    let entry = Entry::new(KEYRING_SERVICE_ID, KEYRING_KEY)?;
-    entry.get_password()
-}
-
-async fn get_rancher_clusters(rancher_token: &str) -> Vec<Cluster> {
-    let rancher_client = RancherClient::new(
-        rancher_token.to_string(),
-        String::from(&get_config().rancher_base_url),
-    );
-    let clusters_result = rancher_client.clusters().await;
-
-    if let Ok(clusters) = clusters_result {
-        let clusters = clusters
-            .data
-            .into_iter()
-            .map(|c| Cluster {
-                id: c.id,
-                name: c.name[..c.name.len() - RANCHER_CLUSTER_SUFFIX_LENGTH].to_string(),
-                name_suffix: c.name[c.name.len() - RANCHER_CLUSTER_SUFFIX_LENGTH..].to_string(),
-                server: c
-                    .links
-                    .get("self")
-                    .unwrap()
-                    .replace("v3", "k8s")
-                    .to_string(),
-                token_url: Some(c.actions.get("generateKubeconfig").unwrap().to_string()),
-            })
-            .collect();
-
-        return clusters;
-    }
-
-    Vec::new()
 }
 
 fn get_local_clusters() -> Vec<Cluster> {
