@@ -1,7 +1,9 @@
+use std::process::Command;
+
 use clap::Args;
 
 use crate::plugin::Plugin;
-use crate::{dotnet, fix, git, kube, mongo_db, sql};
+use crate::{dotnet, fix, git, kube, mongo_db, network, sql};
 
 #[derive(Args)]
 pub struct DoctorCommand {
@@ -28,6 +30,7 @@ pub fn run(dr_command: DoctorCommand) {
         Box::new(sql::Sql),
         Box::new(kube::Kubernetes),
         Box::new(dotnet::Dotnet),
+        Box::new(network::Network),
     ];
 
     let doc_res: Vec<Result<DoctorSuccess, DoctorFailure>> =
@@ -62,4 +65,28 @@ pub fn run(dr_command: DoctorCommand) {
             },
         }
     }
+}
+pub fn is_command_in_path(command: &str) -> Result<DoctorSuccess, DoctorFailure> {
+    let res = match Command::new(command)
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .spawn()
+    {
+        Ok(_) => Ok(DoctorSuccess {
+            message: "is installed".to_string(),
+            plugin: command.to_string(),
+        }),
+        Err(_) => Err(DoctorFailure {
+            message: format!(
+                "tool {} is not available. Make sure it is in the PATH",
+                command
+            ),
+            plugin: command.to_string(),
+            fix: Some(Box::new(|| {
+                println!("Please install");
+                Err("Could not install automatically".into())
+            })),
+        }),
+    };
+    res
 }

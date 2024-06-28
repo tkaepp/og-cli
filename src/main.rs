@@ -13,6 +13,7 @@ use og_cli::git::GitCommand;
 use og_cli::graphql::{GraphQl, GraphQlCommand};
 use og_cli::kube::{self, KubernetesCommand};
 use og_cli::mongo_db::{self, MongoDbCommand};
+use og_cli::network::{Network, NetworkCommand};
 use og_cli::search::SearchCommand;
 use og_cli::sql;
 use og_cli::sql::SqlCommand;
@@ -55,6 +56,9 @@ enum Commands {
     #[clap(name = "dg-beta")]
     /// Passthrough to DG CLI
     Dg(DgCommand),
+    #[clap(name = "network-beta")]
+    /// BETA Run a network validation test
+    Network(NetworkCommand),
 }
 
 #[tokio::main]
@@ -85,6 +89,9 @@ async fn main() -> Result<()> {
                 } // default is to forward unknown commands to the python dg cli
                 Some(Commands::Dg(dg_command)) => {
                     DgCli::run(dg_command)?;
+                }
+                Some(Commands::Network(network_command)) => {
+                    Network::run(network_command);
                 }
                 None => {
                     let mut cmd = Cli::command();

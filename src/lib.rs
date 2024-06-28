@@ -10,6 +10,7 @@ pub mod git;
 pub mod graphql;
 pub mod kube;
 pub mod mongo_db;
+pub mod network;
 pub mod plugin;
 pub mod search;
 pub mod sql;
