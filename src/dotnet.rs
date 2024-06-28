@@ -1,5 +1,4 @@
 use crate::doctor::{DoctorFailure, DoctorSuccess};
-// use std::result::Result::Ok;
 use crate::plugin::Plugin;
 use clap::{Args, Subcommand};
 use dialoguer::Select;
@@ -121,13 +120,14 @@ fn dotnet_run(additional_params: Option<String>, dry_run: bool) -> Result<()> {
     };
 
     if dry_run {
-        println!("Dryrun for dotnet run with args");
-        Command::new("dotnet")
-            .arg("--version")
-            .output()
-            .expect("Could not call dotnet");
+        println!("Dryrun for dotnet run:");
+        println!(
+            "  dotnet version: {}",
+            String::from_utf8(Command::new("dotnet").arg("--version").output()?.stdout)?
+        );
 
-        args.iter().for_each(|a| println!("{}", a));
+        println!("  args:");
+        args.iter().for_each(|a| println!("    {}", a));
     } else {
         Command::new("dotnet")
             .current_dir(project_path)
