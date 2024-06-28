@@ -3,7 +3,10 @@ use std::process::Command;
 use clap::Args;
 
 use crate::plugin::Plugin;
-use crate::{dotnet, fix, git, kube, mongo_db, network, sql};
+use crate::{dotnet, fix, kube, mongo_db, network, sql};
+
+#[cfg(feature = "git")]
+use crate::git;
 
 #[derive(Args)]
 pub struct DoctorCommand {
@@ -25,6 +28,7 @@ pub struct DoctorFailure {
 pub fn run(dr_command: DoctorCommand) {
     let plugins: Vec<Box<dyn Plugin>> = vec![
         Box::new(fix::Fix),
+        #[cfg(feature = "git")]
         Box::new(git::Git),
         Box::new(mongo_db::MongoDb),
         Box::new(sql::Sql),

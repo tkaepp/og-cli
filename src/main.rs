@@ -8,8 +8,6 @@ use og_cli::dg::{DgCli, DgCommand};
 use og_cli::doctor::DoctorCommand;
 use og_cli::dotnet::{self, DotnetCommand};
 use og_cli::fix::{self, FixCommand};
-use og_cli::git;
-use og_cli::git::GitCommand;
 use og_cli::graphql::{GraphQl, GraphQlCommand};
 use og_cli::kube::{self, KubernetesCommand};
 use og_cli::mongo_db::{self, MongoDbCommand};
@@ -18,6 +16,9 @@ use og_cli::search::SearchCommand;
 use og_cli::sql;
 use og_cli::sql::SqlCommand;
 use og_cli::{config, search};
+
+#[cfg(feature = "git")]
+use og_cli::git::{self, GitCommand};
 
 #[derive(Parser)]
 #[command(version, about)]
@@ -51,6 +52,7 @@ enum Commands {
     #[clap(name = "kube-beta")]
     Kubernetes(KubernetesCommand),
     /// Git helpers
+    #[cfg(feature = "git")]
     #[clap(name = "git-beta")]
     Git(GitCommand),
     #[clap(name = "dg-beta")]
@@ -73,6 +75,7 @@ async fn main() -> Result<()> {
                 Some(Commands::MongoDb(mongodb_command)) => mongo_db::MongoDb::run(mongodb_command),
                 Some(Commands::Sql(sql_command)) => sql::Sql::run(sql_command).await?,
                 Some(Commands::Dotnet(command)) => dotnet::Dotnet::run(command).expect("Reason"),
+                #[cfg(feature = "git")]
                 Some(Commands::Git(git_command)) => git::Git::run(git_command),
                 Some(Commands::Fix(_)) => {
                     fix::Fix::run()?;

@@ -50,7 +50,10 @@ ssh-key = { version = "0.6.6", features = [
 futures-util = "0.3.30"
 base64 = "0.22.1"
 arboard = "3.4.0"
-git2 = "0.19.0"
+git2 = { version = "0.19.0", optional = true }
+
+[features]
+git = ["dep:git2"]
 
 # The profile that 'cargo dist' will build with
 [profile.dist]

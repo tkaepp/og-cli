@@ -6,6 +6,7 @@ pub mod dg;
 pub mod doctor;
 pub mod dotnet;
 pub mod fix;
+#[cfg(feature = "git")]
 pub mod git;
 pub mod graphql;
 pub mod kube;
