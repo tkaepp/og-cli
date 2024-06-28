@@ -1,6 +1,5 @@
 use std::{collections::HashMap, default, io::Write};
 
-use curl::easy::{Easy, List};
 use json_to_table::json_to_table;
 
 use clap::{Args, Subcommand, ValueEnum};
