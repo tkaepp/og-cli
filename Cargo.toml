@@ -1,6 +1,6 @@
 [package]
 name = "og-cli"
-version = "0.7.0"
+version = "0.8.0"
 edition = "2021"
 authors = ["Digitec Galaxus OGs"]
 repository = "https://github.com/tkaepp/og-cli"
@@ -68,7 +68,6 @@ ci = "github"
 installers = ["shell", "powershell", "msi"]
 # Target platforms to build apps for (Rust target-triple syntax)
 targets = [
-    "aarch64-apple-darwin",
     "x86_64-apple-darwin",
     "x86_64-unknown-linux-gnu",
     "x86_64-pc-windows-msvc",
