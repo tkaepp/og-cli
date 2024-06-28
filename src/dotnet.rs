@@ -124,7 +124,7 @@ fn dotnet_run(additional_params: Option<String>, dry_run: bool) -> Result<()> {
         println!("Dryrun for dotnet run with args");
         Command::new("dotnet")
             .arg("--version")
-            .spawn()
+            .output()
             .expect("Could not call dotnet");
 
         args.iter().for_each(|a| println!("{}", a));
