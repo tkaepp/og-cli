@@ -1,10 +1,10 @@
-use super::Git;
+use super::GitPlugin;
 use crate::{
     doctor::{is_command_in_path, DoctorFailure, DoctorSuccess},
     plugin::Plugin,
 };
 
-impl Plugin for Git {
+impl Plugin for GitPlugin {
     fn doctor(&self) -> Vec<Result<DoctorSuccess, DoctorFailure>> {
         vec![
             is_command_in_path("git"),
@@ -26,7 +26,7 @@ fn apply_fix_config() -> Result<(), String> {
     }
 }
 
-impl Git {
+impl GitPlugin {
     fn git_config_check() -> Result<DoctorSuccess, DoctorFailure> {
         let entry = "push.autoSetupRemote";
         let config = git2::Config::open_default().expect("git config lookup failed!");

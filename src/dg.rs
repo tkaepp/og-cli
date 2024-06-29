@@ -2,8 +2,6 @@ use clap::Args;
 use eyre::Result;
 use std::process::Command;
 
-pub struct DgCli;
-
 #[derive(Debug, Args)]
 pub struct DgCommand;
 // {
@@ -17,7 +15,9 @@ pub struct DgCommand;
 //
 // }
 
-impl DgCli {
+pub struct DgCliPlugin;
+
+impl DgCliPlugin {
     pub fn run(_: DgCommand) -> Result<()> {
         let dg_path = "dg";
         Command::new(dg_path)

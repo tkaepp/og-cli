@@ -7,42 +7,21 @@ use crate::{
     plugin::Plugin,
 };
 
-pub struct MongoDb;
-
 #[derive(Args, Debug)]
 pub struct MongoDbCommand {
     #[command(subcommand)]
     command: MongoDbSubCommands,
 }
 
-impl Plugin for MongoDb {
-    fn doctor(&self) -> Vec<Result<DoctorSuccess, DoctorFailure>> {
-        let mut result = Vec::new();
-
-        if DockerCompose::is_running() {
-            result.insert(
-                result.len(),
-                Ok(DoctorSuccess {
-                    message: "Docker daemon is running".into(),
-                    plugin: "MongoDB".into(),
-                }),
-            );
-        } else {
-            result.insert(
-                result.len(),
-                Err(DoctorFailure {
-                    message: "Docker daemon is not running".into(),
-                    plugin: "MongoDB".into(),
-                    fix: None,
-                }),
-            );
-        }
-
-        result
-    }
+#[derive(Subcommand, Debug)]
+pub enum MongoDbSubCommands {
+    Start,
+    Stop,
 }
 
-impl MongoDb {
+pub struct MongoDbPlugin;
+
+impl MongoDbPlugin {
     pub fn run(cli: MongoDbCommand) {
         let mongodb_cmd = cli.command;
         let mut environment = HashMap::new();
@@ -86,8 +65,29 @@ impl MongoDb {
     }
 }
 
-#[derive(Subcommand, Debug)]
-pub enum MongoDbSubCommands {
-    Start,
-    Stop,
+impl Plugin for MongoDbPlugin {
+    fn doctor(&self) -> Vec<Result<DoctorSuccess, DoctorFailure>> {
+        let mut result = Vec::new();
+
+        if DockerCompose::is_running() {
+            result.insert(
+                result.len(),
+                Ok(DoctorSuccess {
+                    message: "Docker daemon is running".into(),
+                    plugin: "MongoDB".into(),
+                }),
+            );
+        } else {
+            result.insert(
+                result.len(),
+                Err(DoctorFailure {
+                    message: "Docker daemon is not running".into(),
+                    plugin: "MongoDB".into(),
+                    fix: None,
+                }),
+            );
+        }
+
+        result
+    }
 }

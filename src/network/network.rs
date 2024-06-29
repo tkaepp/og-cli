@@ -3,9 +3,9 @@ use std::process::Command;
 use super::{doctor::Tools, NetworkCommand};
 use crate::doctor::{is_command_in_path, DoctorFailure, DoctorSuccess};
 
-pub struct Network;
+pub struct NetworkPlugin;
 
-impl Network {
+impl NetworkPlugin {
     pub fn run(_: NetworkCommand) {
         println!("Running Network Tests");
         let ping_result =

@@ -14,8 +14,6 @@ pub const KEYRING_KEY: &str = "rancher_token";
 pub const RANCHER_CLUSTER_SUFFIX_LENGTH: usize = 3;
 pub const RANCHER_CLUSTER_PREFIX: &str = "dg-";
 
-pub struct Kubernetes;
-
 #[derive(Args, Debug)]
 pub struct KubernetesCommand {
     #[command(subcommand)]
@@ -36,6 +34,22 @@ pub enum KubernetesSubcommands {
         #[arg(short, long)]
         no_backup: bool,
     },
+}
+
+pub struct KubernetesPlugin;
+
+impl KubernetesPlugin {
+    pub async fn run(cli: KubernetesCommand) -> eyre::Result<()> {
+        match cli.command {
+            KubernetesSubcommands::Sync { no_backup } => run_sync(!no_backup)
+                .await
+                .context("Unable to sync clusters due to errors")?,
+            KubernetesSubcommands::Cleanup { no_backup } => run_cleanup(!no_backup)
+                .context("Unable to cleanup local kubeconfig due to errors")?,
+        }
+
+        Ok(())
+    }
 }
 
 #[derive(Clone)]
@@ -73,20 +87,6 @@ impl Display for ClusterSyncAction {
                 .as_ref()
                 .map_or_else(|| "DELETE".to_string(), get_cluster_fullname),
         )
-    }
-}
-
-impl Kubernetes {
-    pub async fn run(cli: KubernetesCommand) -> eyre::Result<()> {
-        match cli.command {
-            KubernetesSubcommands::Sync { no_backup } => run_sync(!no_backup)
-                .await
-                .context("Unable to sync clusters due to errors")?,
-            KubernetesSubcommands::Cleanup { no_backup } => run_cleanup(!no_backup)
-                .context("Unable to cleanup local kubeconfig due to errors")?,
-        }
-
-        Ok(())
     }
 }
 

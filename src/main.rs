@@ -3,19 +3,19 @@ use eyre::Result;
 use std::{env, process};
 
 #[cfg(feature = "git")]
-use og_cli::git::{self, GitCommand};
+use og_cli::git::{GitCommand, GitPlugin};
 use og_cli::{
     config,
-    dg::{DgCli, DgCommand},
+    dg::{DgCliPlugin, DgCommand},
     doctor::{self, DoctorCommand},
-    dotnet::{Dotnet, DotnetCommand},
+    dotnet::{DotnetCommand, DotnetPlugin},
     fix::{self, FixCommand},
-    graphql::{GraphQl, GraphQlCommand},
-    kube::{Kubernetes, KubernetesCommand},
-    mongo_db::{MongoDb, MongoDbCommand},
-    network::{Network, NetworkCommand},
-    search::{Search, SearchCommand},
-    sql::{Sql, SqlCommand},
+    graphql::{GraphQlCommand, GraphQlPlugin},
+    kube::{KubernetesCommand, KubernetesPlugin},
+    mongo_db::{MongoDbCommand, MongoDbPlugin},
+    network::{NetworkCommand, NetworkPlugin},
+    search::{SearchCommand, SearchPlugin},
+    sql::{SqlCommand, SqlPlugin},
 };
 
 #[derive(Parser)]
@@ -70,27 +70,27 @@ async fn main() -> Result<()> {
     match cli {
         Ok(c) => {
             match c.command {
-                Some(Commands::MongoDb(mongodb_command)) => MongoDb::run(mongodb_command),
-                Some(Commands::Sql(sql_command)) => Sql::run(sql_command).await?,
-                Some(Commands::Dotnet(command)) => Dotnet::run(command).expect("Reason"),
+                Some(Commands::MongoDb(mongodb_command)) => MongoDbPlugin::run(mongodb_command),
+                Some(Commands::Sql(sql_command)) => SqlPlugin::run(sql_command).await?,
+                Some(Commands::Dotnet(command)) => DotnetPlugin::run(command).expect("Reason"),
                 #[cfg(feature = "git")]
-                Some(Commands::Git(git_command)) => Git::run(git_command),
+                Some(Commands::Git(git_command)) => GitPlugin::run(git_command),
                 Some(Commands::Fix(_)) => {
-                    fix::Fix::run()?;
+                    fix::FixPlugin::run()?;
                 }
                 Some(Commands::Doctor(dr_command)) => doctor::run(dr_command),
                 Some(Commands::Kubernetes(kubernetes_command)) => {
-                    Kubernetes::run(kubernetes_command).await?
+                    KubernetesPlugin::run(kubernetes_command).await?
                 }
                 Some(Commands::GraphQl(graphql_command)) => {
-                    GraphQl::run(graphql_command)?;
+                    GraphQlPlugin::run(graphql_command)?;
                 }
-                Some(Commands::Search(search_command)) => Search::run(search_command).await?, // default is to forward unknown commands to the python dg cli
+                Some(Commands::Search(search_command)) => SearchPlugin::run(search_command).await?, // default is to forward unknown commands to the python dg cli
                 Some(Commands::Dg(dg_command)) => {
-                    DgCli::run(dg_command)?;
+                    DgCliPlugin::run(dg_command)?;
                 }
                 Some(Commands::Network(network_command)) => {
-                    Network::run(network_command);
+                    NetworkPlugin::run(network_command);
                 }
                 None => {
                     let mut cmd = Cli::command();
@@ -127,7 +127,7 @@ async fn main() -> Result<()> {
                     std::process::exit(0);
                 }
                 _ => {
-                    DgCli::run_from_plain_args(args)?;
+                    DgCliPlugin::run_from_plain_args(args)?;
                 }
             }
         }

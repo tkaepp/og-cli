@@ -14,12 +14,27 @@ use crate::{
     plugin::Plugin,
 };
 
-pub struct Dotnet;
-
 #[derive(Args, Debug)]
 pub struct DotnetCommand {
     #[command(subcommand)]
     command: DotnetSubcommands,
+}
+
+#[derive(Subcommand, Debug)]
+enum DotnetSubcommands {
+    Run {
+        additional_params: Option<String>,
+        #[arg(short, long)]
+        dry_run: bool,
+    },
+}
+
+pub struct DotnetPlugin;
+
+impl Plugin for DotnetPlugin {
+    fn doctor(&self) -> Vec<Result<DoctorSuccess, DoctorFailure>> {
+        vec![is_dotnet_installed()]
+    }
 }
 
 fn lauch_settings_regex() -> Result<regex::Regex> {
@@ -32,7 +47,7 @@ fn env_var_regex() -> Result<regex::Regex> {
         .with_context(|| "Something wrong with the environment variable regex")
 }
 
-impl Dotnet {
+impl DotnetPlugin {
     pub fn run(cli: DotnetCommand) -> Result<()> {
         match cli.command {
             DotnetSubcommands::Run {
@@ -142,21 +157,6 @@ fn dotnet_run(additional_params: Option<String>, dry_run: bool) -> Result<()> {
             .expect("Could not run dotnet command");
     }
     Ok(())
-}
-
-impl Plugin for Dotnet {
-    fn doctor(&self) -> Vec<Result<DoctorSuccess, DoctorFailure>> {
-        vec![is_dotnet_installed()]
-    }
-}
-
-#[derive(Subcommand, Debug)]
-enum DotnetSubcommands {
-    Run {
-        additional_params: Option<String>,
-        #[arg(short, long)]
-        dry_run: bool,
-    },
 }
 
 fn is_dotnet_installed() -> core::result::Result<DoctorSuccess, DoctorFailure> {

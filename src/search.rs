@@ -6,56 +6,6 @@ use serde_json::Value;
 
 use crate::get_config;
 
-pub struct Search;
-
-#[derive(Clone, Debug, ValueEnum)]
-pub enum Language {
-    LanguageDe,
-    LanguageEn,
-    LanguageFr,
-    LanguageIt,
-    LanguageNl,
-}
-
-impl Language {
-    pub fn get_language_code(&self) -> &str {
-        match self {
-            Language::LanguageDe => "de-CH",
-            Language::LanguageEn => "en-US",
-            Language::LanguageFr => "fr-CH",
-            Language::LanguageIt => "it-CH",
-            Language::LanguageNl => "de-CH",
-        }
-    }
-}
-
-#[derive(Clone, Debug, ValueEnum)]
-pub enum Portal {
-    PortalChGalaxus,
-    PortalChDigitec,
-    PortalDe,
-    PortalIt,
-    PortalFr,
-    PortalNl,
-    PortalBe,
-    PortalAt,
-}
-
-impl Portal {
-    pub fn get_portal_id(&self) -> i8 {
-        match self {
-            Portal::PortalChGalaxus => 22,
-            Portal::PortalChDigitec => 25,
-            Portal::PortalDe => 27,
-            Portal::PortalAt => 28,
-            Portal::PortalIt => 35,
-            Portal::PortalFr => 32,
-            Portal::PortalNl => 33,
-            Portal::PortalBe => 34,
-        }
-    }
-}
-
 #[derive(Args, Debug)]
 pub struct SearchCommand {
     #[command(subcommand)]
@@ -98,7 +48,9 @@ enum Ltr {
     LtrOff,
 }
 
-impl Search {
+pub struct SearchPlugin;
+
+impl SearchPlugin {
     pub async fn run(search_command: SearchCommand) -> Result<()> {
         match search_command.command {
             SearchSubcommands::ApiSearch {
@@ -252,5 +204,53 @@ impl Search {
         //     Err(error) => print!("{}", error.to_string()),
         // }
         Ok(())
+    }
+}
+
+#[derive(Clone, Debug, ValueEnum)]
+pub enum Language {
+    LanguageDe,
+    LanguageEn,
+    LanguageFr,
+    LanguageIt,
+    LanguageNl,
+}
+
+impl Language {
+    pub fn get_language_code(&self) -> &str {
+        match self {
+            Language::LanguageDe => "de-CH",
+            Language::LanguageEn => "en-US",
+            Language::LanguageFr => "fr-CH",
+            Language::LanguageIt => "it-CH",
+            Language::LanguageNl => "de-CH",
+        }
+    }
+}
+
+#[derive(Clone, Debug, ValueEnum)]
+pub enum Portal {
+    PortalChGalaxus,
+    PortalChDigitec,
+    PortalDe,
+    PortalIt,
+    PortalFr,
+    PortalNl,
+    PortalBe,
+    PortalAt,
+}
+
+impl Portal {
+    pub fn get_portal_id(&self) -> i8 {
+        match self {
+            Portal::PortalChGalaxus => 22,
+            Portal::PortalChDigitec => 25,
+            Portal::PortalDe => 27,
+            Portal::PortalAt => 28,
+            Portal::PortalIt => 35,
+            Portal::PortalFr => 32,
+            Portal::PortalNl => 33,
+            Portal::PortalBe => 34,
+        }
     }
 }

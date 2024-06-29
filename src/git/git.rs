@@ -6,9 +6,9 @@ use std::{ffi::OsStr, process::Command};
 
 use super::commands::{GitCommand, GitSubCommands};
 
-pub struct Git;
+pub struct GitPlugin;
 
-impl Git {
+impl GitPlugin {
     pub fn run(cli: GitCommand) {
         match cli.command {
             GitSubCommands::Setup => setup().unwrap(),

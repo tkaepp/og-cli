@@ -4,4 +4,4 @@ mod kubernetes;
 mod rancher;
 
 pub use kube_config::KubeConfig;
-pub use kubernetes::{Kubernetes, KubernetesCommand};
+pub use kubernetes::{KubernetesCommand, KubernetesPlugin};

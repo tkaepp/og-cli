@@ -20,7 +20,7 @@ use crate::{
     plugin::Plugin,
 };
 
-pub struct Sql;
+pub struct SqlPlugin;
 
 const CONTAINER_NAME: &str = "mssql-local";
 const IMAGE_NAME: &str = "mcr.microsoft.com/azure-sql-edge:latest";
@@ -41,24 +41,7 @@ pub enum SqlSubcommands {
     Status,
 }
 
-impl Plugin for Sql {
-    fn doctor(&self) -> Vec<std::result::Result<DoctorSuccess, DoctorFailure>> {
-        let is_running = DockerCompose::is_running();
-        vec![match is_running {
-            true => Ok(DoctorSuccess {
-                message: "Docker daemon is running".to_string(),
-                plugin: "Sql".into(),
-            }),
-            false => Err(DoctorFailure {
-                message: "Docker daemon is not running or might not be installed".to_string(),
-                plugin: "Sql".into(),
-                fix: None,
-            }),
-        }]
-    }
-}
-
-impl Sql {
+impl SqlPlugin {
     pub async fn run(cli: SqlCommand) -> Result<()> {
         let sql_cmd = cli.command;
         let docker = init_docker().await?;
@@ -109,6 +92,23 @@ impl Sql {
         }
 
         Ok(())
+    }
+}
+
+impl Plugin for SqlPlugin {
+    fn doctor(&self) -> Vec<std::result::Result<DoctorSuccess, DoctorFailure>> {
+        let is_running = DockerCompose::is_running();
+        vec![match is_running {
+            true => Ok(DoctorSuccess {
+                message: "Docker daemon is running".to_string(),
+                plugin: "Sql".into(),
+            }),
+            false => Err(DoctorFailure {
+                message: "Docker daemon is not running or might not be installed".to_string(),
+                plugin: "Sql".into(),
+                fix: None,
+            }),
+        }]
     }
 }
 

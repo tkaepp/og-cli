@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 
-use super::Network;
+use super::NetworkPlugin;
 use crate::{
     doctor::{is_command_in_path, DoctorFailure, DoctorSuccess},
     plugin::Plugin,
@@ -28,7 +28,7 @@ impl Display for Tools {
     }
 }
 
-impl Plugin for Network {
+impl Plugin for NetworkPlugin {
     fn doctor(&self) -> Vec<Result<DoctorSuccess, DoctorFailure>> {
         let required_tools = vec![
             is_command_in_path(Tools::Nslookup.to_string().as_str()),

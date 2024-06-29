@@ -24,14 +24,14 @@ pub struct DoctorFailure {
 
 pub fn run(dr_command: DoctorCommand) {
     let plugins: Vec<Box<dyn Plugin>> = vec![
-        Box::new(fix::Fix),
+        Box::new(fix::FixPlugin),
         #[cfg(feature = "git")]
-        Box::new(git::Git),
-        Box::new(mongo_db::MongoDb),
-        Box::new(sql::Sql),
-        Box::new(kube::Kubernetes),
-        Box::new(dotnet::Dotnet),
-        Box::new(network::Network),
+        Box::new(git::GitPlugin),
+        Box::new(mongo_db::MongoDbPlugin),
+        Box::new(sql::SqlPlugin),
+        Box::new(kube::KubernetesPlugin),
+        Box::new(dotnet::DotnetPlugin),
+        Box::new(network::NetworkPlugin),
     ];
 
     let doc_res: Vec<Result<DoctorSuccess, DoctorFailure>> =

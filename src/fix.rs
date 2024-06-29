@@ -8,12 +8,12 @@ use crate::{
     plugin::Plugin,
 };
 
-pub struct Fix;
-
 #[derive(Args, Debug)]
 pub struct FixCommand;
 
-impl Fix {
+pub struct FixPlugin;
+
+impl FixPlugin {
     pub fn run() -> Result<()> {
         println!("Reinstalling Dg Cli");
         let os = env::consts::OS;
@@ -88,7 +88,7 @@ impl Fix {
     }
 }
 
-impl Plugin for Fix {
+impl Plugin for FixPlugin {
     fn doctor(&self) -> Vec<Result<DoctorSuccess, DoctorFailure>> {
         Vec::new()
     }

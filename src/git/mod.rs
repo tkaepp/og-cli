@@ -3,4 +3,4 @@ mod doctor;
 mod git;
 
 pub use commands::GitCommand;
-pub use git::Git;
+pub use git::GitPlugin;
