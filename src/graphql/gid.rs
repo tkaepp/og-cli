@@ -1,5 +1,6 @@
 use base64::{engine::general_purpose, Engine};
 use clap::ValueEnum;
+use colored::Colorize;
 use eyre::{eyre, Context, Report, Result};
 use std::{
     fmt::{Debug, Display},
@@ -67,7 +68,7 @@ impl Display for Gid {
 
 impl Debug for Gid {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} {} ({})", self.name, self.id, self.id_type)
+        write!(f, "{} {} ({})", self.name, self.id.bold(), self.id_type)
     }
 }
 
