@@ -24,7 +24,8 @@ impl DgCliPlugin {
         Command::new(dg_path)
             .env("DG_CLI_USER_TYPE", "autonomous")
             .args(["--help"])
-            .spawn()?;
+            .spawn()?
+            .wait()?;
 
         Ok(())
     }
@@ -34,7 +35,8 @@ impl DgCliPlugin {
         Command::new(dg_path)
             .env("DG_CLI_USER_TYPE", "autonomous")
             .args(["--help"])
-            .spawn()?;
+            .spawn()?
+            .wait()?;
 
         Ok(())
     }
@@ -44,7 +46,8 @@ impl DgCliPlugin {
         Command::new(dg_path)
             .env("DG_CLI_USER_TYPE", "autonomous")
             .args(args)
-            .spawn()?;
+            .spawn()?
+            .wait()?;
 
         Ok(())
     }
