@@ -17,31 +17,35 @@ name = "og"
 path = "src/main.rs"
 
 [dependencies]
+arboard = "3.4.0"
 azure_identity = "0.20.0"
 azure_security_keyvault = "0.20.0"
+base64 = "0.22.1"
 bollard = "0.16.1"
 clap = { version = "4.5.7", features = ["derive"] }
-glob = "0.3.1"
-regex = "1.10.5"
+colored = "2.1.0"
+dialoguer = "0.11.0"
+display_json = "0.2.1"
+eyre = "0.6.12"
 figment = { version = "0.10.19", features = ["json"] }
-serde = { version = "1.0.203", features = ["derive"] }
-serde_yaml = "0.9.33"
-tempfile = "3.10.1"
+futures-util = "0.3.30"
+git2 = { version = "0.19.0", optional = true }
+glob = "0.3.1"
+homedir = "0.2.1"
+json = "0.12.4"
+json_to_table = "0.7.0"
 keyring = "2.3.3"
+lazy_static = "1.5.0"
+log = "0.4.22"
 rancher = { git = "https://github.com/dannyyy/rancher-rs.git" }
-tokio = "1.38.0"
+regex = "1.10.5"
 reqwest = { version = "0.12.5", default-features = false, features = [
     "native-tls-vendored",
 ] }
-json = "0.12.4"
-json_to_table = "0.7.0"
+serde = { version = "1.0.203", features = ["derive"] }
 serde_json = "1.0.118"
-display_json = "0.2.1"
-dialoguer = "0.11.0"
-lazy_static = "1.5.0"
-eyre = "0.6.12"
-colored = "2.1.0"
-homedir = "0.2.1"
+serde_yaml = "0.9.33"
+simplelog = "0.12.2"
 ssh-key = { version = "0.6.6", features = [
     "getrandom",
     "encryption",
@@ -49,12 +53,8 @@ ssh-key = { version = "0.6.6", features = [
     "rsa",
     "ed25519",
 ] }
-futures-util = "0.3.30"
-base64 = "0.22.1"
-arboard = "3.4.0"
-git2 = { version = "0.19.0", optional = true }
-log = "0.4.22"
-simplelog = "0.12.2"
+tempfile = "3.10.1"
+tokio = "1.38.0"
 
 [features]
 git = ["dep:git2"]
