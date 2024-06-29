@@ -1,5 +1,7 @@
 use clap::{error::ErrorKind, CommandFactory, Parser, Subcommand};
 use eyre::Result;
+use log::LevelFilter;
+use simplelog::{ColorChoice, ConfigBuilder, TermLogger, TerminalMode};
 use std::{env, process};
 
 #[cfg(feature = "git")]
@@ -52,10 +54,19 @@ enum Commands {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    TermLogger::init(
+        LevelFilter::Info,
+        ConfigBuilder::new()
+            .set_time_level(LevelFilter::Off)
+            .set_max_level(LevelFilter::Off)
+            .build(),
+        TerminalMode::Mixed,
+        ColorChoice::Never,
+    )?;
+
     config::init_config().await?;
 
     let cli = Cli::try_parse();
-
     match cli {
         Ok(c) => {
             match c.command {

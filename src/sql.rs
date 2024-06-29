@@ -11,6 +11,7 @@ use bollard::{
 use clap::{Args, Subcommand};
 use eyre::Result;
 use futures_util::TryStreamExt;
+use log::{error, info};
 use std::collections::HashMap;
 
 use crate::{
@@ -51,7 +52,7 @@ impl SqlPlugin {
         match sql_cmd {
             SqlSubcommands::Start => {
                 if status == RUNNING {
-                    println!(
+                    info!(
                         "Container {} is already running, nothing to do.",
                         CONTAINER_NAME
                     );
@@ -61,7 +62,7 @@ impl SqlPlugin {
             }
             SqlSubcommands::Stop => {
                 if status == EXITED {
-                    println!(
+                    info!(
                         "Container {} is already stopped, nothing to do.",
                         CONTAINER_NAME
                     );
@@ -71,14 +72,14 @@ impl SqlPlugin {
             }
             SqlSubcommands::Remove => {
                 if status == EMPTY {
-                    println!(
+                    info!(
                         "Container {} doesn't exist, nothing to remove.",
                         CONTAINER_NAME
                     );
                     return Ok(());
                 }
                 if status == RUNNING {
-                    println!(
+                    info!(
                         "Container {} is running, it must be stopped first.",
                         CONTAINER_NAME
                     );
@@ -88,7 +89,7 @@ impl SqlPlugin {
                 remove(docker).await?;
             }
             SqlSubcommands::Status => {
-                println!("Container {} status: {:?}", CONTAINER_NAME, status);
+                info!("Container {} status: {:?}", CONTAINER_NAME, status);
             }
         }
 
@@ -114,17 +115,17 @@ impl Plugin for SqlPlugin {
 }
 
 async fn remove(docker: Docker) -> Result<()> {
-    println!("Removing container {}...", CONTAINER_NAME);
+    info!("Removing container {}...", CONTAINER_NAME);
     docker
         .remove_container(CONTAINER_NAME.as_ref(), None)
         .await?;
-    println!("Container {} removed ", CONTAINER_NAME);
+    info!("Container {} removed ", CONTAINER_NAME);
     Ok(())
 }
 
 async fn start(docker: Docker, status: ContainerStateStatusEnum) -> Result<()> {
     if status == EMPTY {
-        println!(
+        info!(
             "Container {} doesn't exist, container will be created and started...",
             CONTAINER_NAME
         );
@@ -132,7 +133,7 @@ async fn start(docker: Docker, status: ContainerStateStatusEnum) -> Result<()> {
         return Ok(());
     }
 
-    println!(
+    info!(
         "Container {} exists but was stopped, container will restart...",
         CONTAINER_NAME
     );
@@ -141,9 +142,9 @@ async fn start(docker: Docker, status: ContainerStateStatusEnum) -> Result<()> {
 }
 
 async fn stop(docker: Docker) -> Result<()> {
-    println!("Stopping container {}...", CONTAINER_NAME);
+    info!("Stopping container {}...", CONTAINER_NAME);
     docker.stop_container(CONTAINER_NAME.as_ref(), None).await?;
-    println!("Container {} stopped ", CONTAINER_NAME);
+    info!("Container {} stopped ", CONTAINER_NAME);
     Ok(())
 }
 
@@ -196,9 +197,9 @@ async fn create_and_run_container(docker: Docker) -> Result<()> {
 
     while let Some(output) = stream.try_next().await? {
         if output.error.is_some() {
-            println!("{}", output.error.unwrap_or_else(|| "".to_string()));
+            error!("{}", output.error.unwrap_or_else(|| "".to_string()));
         } else {
-            println!(
+            info!(
                 "{} {}",
                 output.status.unwrap_or_else(|| "".to_string()),
                 output.progress.unwrap_or_else(|| "".to_string())
@@ -212,7 +213,7 @@ async fn create_and_run_container(docker: Docker) -> Result<()> {
         .start_container(CONTAINER_NAME, None::<StartContainerOptions<String>>)
         .await?;
 
-    println!("Container {} created and started", result.id);
+    info!("Container {} created and started", result.id);
 
     Ok(())
 }

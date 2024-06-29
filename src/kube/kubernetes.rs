@@ -2,6 +2,7 @@ use clap::{Args, Subcommand};
 use colored::Colorize;
 use dialoguer::MultiSelect;
 use eyre::Context;
+use log::{error, info};
 use std::{
     fmt::{Display, Formatter},
     io::Read,
@@ -92,7 +93,7 @@ impl Display for ClusterSyncAction {
 }
 
 async fn run_sync(kubeconfig_backup: bool) -> eyre::Result<()> {
-    println!("{}", "Depending on your OS, you have to confirm or enter your password to access the credential store to retrieve the necessary access tokens [ENTER]".bright_green());
+    info!("{}", "Depending on your OS, you have to confirm or enter your password to access the credential store to retrieve the necessary access tokens [ENTER]".bright_green());
     let buffer = &mut [0u8];
     std::io::stdin().read_exact(buffer).unwrap();
 
@@ -101,25 +102,25 @@ async fn run_sync(kubeconfig_backup: bool) -> eyre::Result<()> {
     let local_clusters = get_local_clusters()?;
 
     if rancher_clusters.is_empty() {
-        println!("{}", "No clusters found to sync".red());
+        error!("{}", "No clusters found to sync".red());
         return Ok(());
     }
 
-    println!(
+    info!(
         "Found {} Rancher clusters",
         rancher_clusters.len().to_string().green()
     );
 
-    println!(
+    info!(
         "Found {} local clusters",
         local_clusters.len().to_string().green()
     );
 
-    println!();
+    info!("");
 
     let cluster_synch_actions = get_cluster_sync_actions(local_clusters, rancher_clusters);
     if cluster_synch_actions.is_empty() {
-        println!("{}", "Your config is already up to date.".green());
+        info!("{}", "Your config is already up to date.".green());
 
         return Ok(());
     }
@@ -129,10 +130,10 @@ async fn run_sync(kubeconfig_backup: bool) -> eyre::Result<()> {
         .items(&cluster_synch_actions)
         .interact()
         .unwrap();
-    println!();
+    info!("");
 
     if selected_actions.is_empty() {
-        println!("{}", "No sync action selected.".red());
+        error!("{}", "No sync action selected.".red());
 
         return Ok(());
     }
@@ -166,7 +167,7 @@ async fn run_sync(kubeconfig_backup: bool) -> eyre::Result<()> {
         }
     }
 
-    println!(
+    info!(
         "{}",
         "kubeconfig has successfully be synced with the selected Rancher clusters".green()
     );
@@ -183,7 +184,7 @@ fn run_cleanup(kubeconfig_backup: bool) -> eyre::Result<()> {
         .collect();
 
     if clusters.is_empty() {
-        println!(
+        info!(
             "{}",
             "Your kubeconfig is currently empty. Nothing to clean up.".green()
         );
@@ -195,10 +196,10 @@ fn run_cleanup(kubeconfig_backup: bool) -> eyre::Result<()> {
         .items(&clusters)
         .interact()
         .unwrap();
-    println!();
+    info!("");
 
     if selected_clusters.is_empty() {
-        println!(
+        info!(
             "{}",
             "There are no clusters found to clean up in your local kubeconfig".green()
         );
@@ -214,7 +215,7 @@ fn run_cleanup(kubeconfig_backup: bool) -> eyre::Result<()> {
     }
 
     write_kubeconfig(kubeconfig, kubeconfig_backup)?;
-    println!(
+    info!(
         "{}",
         "Your local kubeconfig has been cleaned up successfully".green()
     );

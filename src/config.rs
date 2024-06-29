@@ -4,6 +4,7 @@ use figment::{
     Figment,
 };
 use homedir::get_my_home;
+use log::info;
 use serde::{Deserialize, Serialize};
 use std::{
     fs::{self, File},
@@ -38,7 +39,7 @@ pub async fn init_config() -> Result<()> {
     let ogrc = og_dir.join(".ogrc.json");
 
     if !ogrc.exists() {
-        println!("Config doesn't exist yet, fetching from {CONFIG_URL}");
+        info!("Config doesn't exist yet, fetching from {CONFIG_URL}");
         download_config(&ogrc)
             .await
             .context("Unable to fetch config, are you connected to the VPN?")?;
@@ -49,7 +50,7 @@ pub async fn init_config() -> Result<()> {
     let config = if let Ok(config) = config_result {
         config
     } else {
-        println!("Detected out-of-date config, redownloading from {CONFIG_URL}");
+        info!("Detected out-of-date config, redownloading from {CONFIG_URL}");
         download_config(&ogrc)
             .await
             .context("Unable to fetch config, are you connected to the VPN?")?;

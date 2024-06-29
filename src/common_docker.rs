@@ -1,3 +1,4 @@
+use log::{error, info};
 use std::{
     collections::HashMap,
     io::Write,
@@ -13,11 +14,11 @@ pub struct DockerCompose {
 impl DockerCompose {
     pub fn new(compose_string: String) -> DockerCompose {
         let mut file = NamedTempFile::new().unwrap_or_else(|err| {
-            println!("Could not create a temp file{}", err);
+            error!("Could not create a temp file{}", err);
             process::exit(1)
         });
         write!(file, "{}", compose_string).unwrap_or_else(|err| {
-            println!("{err}");
+            error!("{err}");
             process::exit(1)
         });
 
@@ -40,7 +41,7 @@ impl DockerCompose {
 
         let stdout = String::from_utf8(command.stdout).unwrap();
         dbg!(&self);
-        println!("{}", &stdout);
+        info!("{}", &stdout);
     }
 
     pub fn stop(&self) {
@@ -57,7 +58,7 @@ impl DockerCompose {
             .expect("Failed to stop docker compose");
 
         let stdout = String::from_utf8(command.stdout).unwrap();
-        println!("{}", &stdout);
+        info!("{}", &stdout);
     }
 
     pub fn is_running() -> bool {

@@ -2,6 +2,7 @@ use arboard::Clipboard;
 use clap::{Args, Subcommand};
 use eyre::Result;
 use gid::{Gid, Type};
+use log::info;
 
 use crate::{
     doctor::{DoctorFailure, DoctorSuccess},
@@ -46,12 +47,12 @@ impl GraphQlPlugin {
                 let gid = Gid::new(name, id, id_type);
                 let encoded_gid = gid.to_string();
                 clipboard.set_text(&encoded_gid)?;
-                println!("{encoded_gid}")
+                info!("{encoded_gid}")
             }
             GraphQlSubcommands::Decode { id } => {
                 let gid = Gid::try_from(id)?;
                 clipboard.set_text(&gid.id)?;
-                println!("{gid:#?}");
+                info!("{gid:#?}");
             }
         }
 

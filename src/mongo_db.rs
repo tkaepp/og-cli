@@ -1,4 +1,5 @@
 use clap::{Args, Subcommand};
+use log::info;
 use std::collections::HashMap;
 
 use crate::{
@@ -55,11 +56,11 @@ impl MongoDbPlugin {
             .build();
         match mongodb_cmd {
             MongoDbSubCommands::Start => {
-                println!("Starting MongoDB");
+                info!("Starting MongoDB");
                 compose.start();
             }
             MongoDbSubCommands::Stop => {
-                println!("Stopping MongoDB");
+                info!("Stopping MongoDB");
                 compose.stop();
             }
         }

@@ -1,5 +1,7 @@
 use std::process::Command;
 
+use log::{error, info};
+
 use super::{doctor::Tools, NetworkCommand};
 use crate::doctor::{is_command_in_path, DoctorFailure, DoctorSuccess};
 
@@ -7,16 +9,16 @@ pub struct NetworkPlugin;
 
 impl NetworkPlugin {
     pub fn run(_: NetworkCommand) {
-        println!("Running Network Tests");
+        info!("Running Network Tests");
         let ping_result =
             is_command_in_path(Tools::Nslookup.to_string().as_str()).and(Self::ping("10.1.4.4"));
 
         match ping_result {
             Ok(x) => {
-                println!("✅  {}", x.message)
+                info!("✅  {}", x.message)
             }
             Err(x) => {
-                println!("❌ {}", x.message)
+                error!("❌ {}", x.message)
             }
         }
 
@@ -31,10 +33,10 @@ impl NetworkPlugin {
 
         match nslookup_result {
             Ok(x) => {
-                println!("✅  {}", x.message)
+                info!("✅  {}", x.message)
             }
             Err(x) => {
-                println!("❌ {}", x.message)
+                error!("❌ {}", x.message)
             }
         }
     }

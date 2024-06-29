@@ -1,6 +1,7 @@
 use dialoguer::MultiSelect;
 use eyre::{eyre, ContextCompat, Result};
 use homedir::get_my_home;
+use log::info;
 use ssh_key::{rand_core::OsRng, Algorithm, LineEnding, PrivateKey, PublicKey};
 use std::{ffi::OsStr, process::Command};
 
@@ -98,7 +99,7 @@ fn ensure_ssh_keys() -> Result<Vec<PublicKey>> {
             .items(&public_keys)
             .interact()
             .unwrap();
-        println!("You chose:");
+        info!("You chose:");
 
         return Ok(selection.iter().map(|r| public_keys[*r].clone()).collect());
     }

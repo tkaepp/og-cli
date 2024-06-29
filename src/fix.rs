@@ -1,6 +1,7 @@
 use clap::Args;
 use eyre::{ContextCompat, Result};
 use homedir::get_my_home;
+use log::{error, info};
 use std::{env, fs, process::Command};
 
 use crate::{
@@ -16,7 +17,7 @@ pub struct FixPlugin;
 
 impl FixPlugin {
     pub fn run() -> Result<()> {
-        println!("Reinstalling Dg Cli");
+        info!("Reinstalling Dg Cli");
         let os = env::consts::OS;
         match os {
             "macos" => {
@@ -36,20 +37,20 @@ impl FixPlugin {
                     .context("Could not get home directory")?
                     .join(".local/pipx");
                 let _ = fs::remove_dir_all(pipx_dir);
-                println!("attempting to reinstall pipx");
+                info!("attempting to reinstall pipx");
                 let uninstallstatus = Command::new("brew")
                     .arg("uninstall")
                     .arg("pipx")
                     .status()
                     .expect("brew command failed to start");
 
-                println!("Uninstall finished with: {uninstallstatus}");
+                info!("Uninstall finished with: {uninstallstatus}");
 
                 let message = match fs::remove_dir_all("~/.local/pipx") {
                     Ok(()) => ".dg-cli deleted",
                     Err(_e) => "unknown error",
                 };
-                println!("{message}");
+                info!("{message}");
 
                 let installstatus = Command::new("brew")
                     .arg("install")
@@ -57,7 +58,7 @@ impl FixPlugin {
                     .status()
                     .expect("brew command failed to start");
 
-                println!("Install finished with: {installstatus}");
+                info!("Install finished with: {installstatus}");
 
                 Command::new("curl")
                     .arg("-sL")
@@ -73,16 +74,16 @@ impl FixPlugin {
                     .expect("python3 command failed to start");
 
                 fs::remove_file("install.py")?;
-                println!("cli install finished with: {clistatus}");
+                info!("cli install finished with: {clistatus}");
             }
             "windows" => {
-                println!("Hi I'm on windows");
+                info!("Hi I'm on windows");
             }
             "linux" => {
-                println!("Hi I'm on linux");
+                info!("Hi I'm on linux");
             }
             _ => {
-                println!("InvalidOS, cancelling");
+                error!("InvalidOS, cancelling");
             }
         }
         Ok(())

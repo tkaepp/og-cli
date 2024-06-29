@@ -1,4 +1,5 @@
 use clap::Args;
+use log::{error, info};
 use std::process::Command;
 
 #[cfg(feature = "git")]
@@ -56,14 +57,14 @@ pub fn run(dr_command: DoctorCommand) {
     for result in doctor_result_with_fixes.iter() {
         match result {
             Ok(res) => {
-                println!("✅ {}: {}", res.plugin, res.message)
+                info!("✅ {}: {}", res.plugin, res.message)
             }
             Err(res) => match res {
                 (x, Some(r)) => match r {
-                    Ok(_) => println!("✅ Fixed {}: {}", x.plugin, x.message),
-                    Err(y) => println!("❌ Could not fix {}: {} : {}", x.plugin, x.message, y),
+                    Ok(_) => error!("✅ Fixed {}: {}", x.plugin, x.message),
+                    Err(y) => error!("❌ Could not fix {}: {} : {}", x.plugin, x.message, y),
                 },
-                (x, None) => println!("❌ {}: {}", x.plugin, res.0.message),
+                (x, None) => error!("❌ {}: {}", x.plugin, res.0.message),
             },
         }
     }
@@ -85,7 +86,7 @@ pub fn is_command_in_path(command: &str) -> Result<DoctorSuccess, DoctorFailure>
             ),
             plugin: command.to_string(),
             fix: Some(Box::new(|| {
-                println!("Please install");
+                info!("Please install");
                 Err("Could not install automatically".into())
             })),
         }),

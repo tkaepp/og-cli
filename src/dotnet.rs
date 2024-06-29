@@ -2,6 +2,7 @@ use clap::{Args, Subcommand};
 use dialoguer::Select;
 use eyre::{Context, ContextCompat, Ok, Result};
 use glob::glob;
+use log::info;
 use regex::Regex;
 use std::{
     fs,
@@ -141,14 +142,14 @@ fn dotnet_run(additional_params: Option<String>, dry_run: bool) -> Result<()> {
     };
 
     if dry_run {
-        println!("Dryrun for dotnet run:");
-        println!(
+        info!("Dryrun for dotnet run:");
+        info!(
             "  dotnet version: {}",
             String::from_utf8(Command::new("dotnet").arg("--version").output()?.stdout)?
         );
 
-        println!("  args:");
-        args.iter().for_each(|a| println!("    {}", a));
+        info!("  args:");
+        args.iter().for_each(|a| info!("    {}", a));
     } else {
         Command::new("dotnet")
             .current_dir(project_path)

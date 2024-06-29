@@ -2,6 +2,7 @@ use clap::{Args, Subcommand, ValueEnum};
 use eyre::Result;
 use json::object;
 use json_to_table::json_to_table;
+use log::info;
 use serde_json::Value;
 
 use crate::get_config;
@@ -196,12 +197,12 @@ impl SearchPlugin {
             .unwrap()
             .json::<Value>()
             .await?;
-        println!("{}", json_to_table(&res).to_string());
+        info!("{}", json_to_table(&res).to_string());
 
         // match res {
-        //     //Ok(success) => println!("{}", success),
-        //     //Ok(success) => println!("{}", serde_json::json!(&success)),
-        //     Ok(success) => println!("{}", json_to_table(&serde_json::json!(&success))),
+        //     //Ok(success) => info!("{}", success),
+        //     //Ok(success) => info!("{}", serde_json::json!(&success)),
+        //     Ok(success) => info!("{}", json_to_table(&serde_json::json!(&success))),
         //     Err(error) => print!("{}", error.to_string()),
         // }
         Ok(())

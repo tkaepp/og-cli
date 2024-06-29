@@ -53,6 +53,8 @@ futures-util = "0.3.30"
 base64 = "0.22.1"
 arboard = "3.4.0"
 git2 = { version = "0.19.0", optional = true }
+log = "0.4.22"
+simplelog = "0.12.2"
 
 [features]
 git = ["dep:git2"]
