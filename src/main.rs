@@ -29,23 +29,16 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     Sql(SqlCommand),
-
     #[clap(name = "mongodb")]
     MongoDb(MongoDbCommand),
-
     #[clap(name = "graphql")]
     GraphQl(GraphQlCommand),
-
     Search(SearchCommand),
-
     Doctor(DoctorCommand),
-
     #[clap(name = "fix-beta")]
     Fix(FixCommand),
-
     #[clap(name = "dotnet-beta")]
     Dotnet(DotnetCommand),
-
     #[clap(name = "kube-beta")]
     Kubernetes(KubernetesCommand),
     #[cfg(feature = "git")]
