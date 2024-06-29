@@ -120,7 +120,7 @@ async fn main() -> Result<()> {
                 | ErrorKind::Io
                 | ErrorKind::Format => {
                     e.print()?;
-                    std::process::exit(0);
+                    process::exit(1);
                 }
                 _ => {
                     DgCliPlugin::run_from_plain_args(args)?;
