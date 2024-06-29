@@ -137,7 +137,10 @@ impl Search {
                 )
                 .await
             }
-            SearchSubcommands::EsSearch { environment, query } => todo!(),
+            SearchSubcommands::EsSearch {
+                environment: _,
+                query: _,
+            } => todo!(),
         }
     }
 

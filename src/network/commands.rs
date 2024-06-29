@@ -10,5 +10,5 @@ pub struct NetworkCommand {
 #[derive(Subcommand)]
 pub enum NetworkSubCommands {
     /// Run a network test to validate various connections within the company
-    runTest,
+    RunTest,
 }
