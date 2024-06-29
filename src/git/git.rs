@@ -1,19 +1,15 @@
-use std::ffi::OsStr;
-use std::process::Command;
-
 use dialoguer::MultiSelect;
 use eyre::{eyre, ContextCompat, Result};
 use homedir::get_my_home;
-use ssh_key::rand_core::OsRng;
-use ssh_key::{Algorithm, LineEnding, PrivateKey, PublicKey};
+use ssh_key::{rand_core::OsRng, Algorithm, LineEnding, PrivateKey, PublicKey};
+use std::{ffi::OsStr, process::Command};
 
-use crate::git;
-use crate::git::commands::GitSubCommands;
+use super::commands::{GitCommand, GitSubCommands};
 
 pub struct Git;
 
 impl Git {
-    pub fn run(cli: git::commands::GitCommand) {
+    pub fn run(cli: GitCommand) {
         match cli.command {
             GitSubCommands::Setup => setup().unwrap(),
         }

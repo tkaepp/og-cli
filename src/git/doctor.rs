@@ -1,6 +1,8 @@
-use crate::doctor::{is_command_in_path, DoctorFailure, DoctorSuccess};
-use crate::git::Git;
-use crate::plugin::Plugin;
+use super::Git;
+use crate::{
+    doctor::{is_command_in_path, DoctorFailure, DoctorSuccess},
+    plugin::Plugin,
+};
 
 impl Plugin for Git {
     fn doctor(&self) -> Vec<Result<DoctorSuccess, DoctorFailure>> {

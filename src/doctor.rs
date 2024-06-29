@@ -1,12 +1,9 @@
-use std::process::Command;
-
 use clap::Args;
-
-use crate::plugin::Plugin;
-use crate::{dotnet, fix, kube, mongo_db, network, sql};
+use std::process::Command;
 
 #[cfg(feature = "git")]
 use crate::git;
+use crate::{dotnet, fix, kube, mongo_db, network, plugin::Plugin, sql};
 
 #[derive(Args)]
 pub struct DoctorCommand {

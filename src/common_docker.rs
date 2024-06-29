@@ -1,6 +1,8 @@
-use std::collections::HashMap;
-use std::io::Write;
-use std::process::{self, Command};
+use std::{
+    collections::HashMap,
+    io::Write,
+    process::{self, Command},
+};
 use tempfile::NamedTempFile;
 
 #[derive(Debug)]

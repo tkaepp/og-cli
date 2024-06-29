@@ -1,19 +1,24 @@
-use std::collections::HashMap;
-
-use crate::common_docker::DockerCompose;
-use crate::doctor::{DoctorFailure, DoctorSuccess};
-use crate::get_config;
-use crate::plugin::Plugin;
-use bollard::container::{
-    Config, CreateContainerOptions, RestartContainerOptions, StartContainerOptions,
+use bollard::{
+    container::{Config, CreateContainerOptions, RestartContainerOptions, StartContainerOptions},
+    image::CreateImageOptions,
+    models::{
+        ContainerStateStatusEnum,
+        ContainerStateStatusEnum::{EMPTY, EXITED, RUNNING},
+        HostConfig, PortBinding,
+    },
+    Docker,
 };
-use bollard::image::CreateImageOptions;
-use bollard::models::ContainerStateStatusEnum::{EMPTY, EXITED, RUNNING};
-use bollard::models::{ContainerStateStatusEnum, HostConfig, PortBinding};
-use bollard::Docker;
 use clap::{Args, Subcommand};
 use eyre::Result;
 use futures_util::TryStreamExt;
+use std::collections::HashMap;
+
+use crate::{
+    common_docker::DockerCompose,
+    doctor::{DoctorFailure, DoctorSuccess},
+    get_config,
+    plugin::Plugin,
+};
 
 pub struct Sql;
 

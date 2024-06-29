@@ -1,7 +1,6 @@
-use std::process::Command;
-
 use clap::Args;
 use eyre::Result;
+use std::process::Command;
 
 pub struct DgCli;
 

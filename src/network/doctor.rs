@@ -1,8 +1,10 @@
 use std::fmt::{Display, Formatter};
 
-use crate::doctor::{is_command_in_path, DoctorFailure, DoctorSuccess};
-use crate::network::Network;
-use crate::plugin::Plugin;
+use super::Network;
+use crate::{
+    doctor::{is_command_in_path, DoctorFailure, DoctorSuccess},
+    plugin::Plugin,
+};
 
 pub enum Tools {
     Nslookup,

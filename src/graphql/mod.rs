@@ -1,11 +1,12 @@
-use crate::{
-    doctor::{DoctorFailure, DoctorSuccess},
-    plugin::Plugin,
-};
 use arboard::Clipboard;
 use clap::{Args, Subcommand};
 use eyre::Result;
 use gid::{Gid, Type};
+
+use crate::{
+    doctor::{DoctorFailure, DoctorSuccess},
+    plugin::Plugin,
+};
 
 mod gid;
 

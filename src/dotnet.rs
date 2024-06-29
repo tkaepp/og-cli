@@ -1,13 +1,18 @@
-use crate::doctor::{DoctorFailure, DoctorSuccess};
-use crate::plugin::Plugin;
 use clap::{Args, Subcommand};
 use dialoguer::Select;
 use eyre::{Context, ContextCompat, Ok, Result};
 use glob::glob;
 use regex::Regex;
-use std::fs;
-use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    process::Command,
+};
+
+use crate::{
+    doctor::{DoctorFailure, DoctorSuccess},
+    plugin::Plugin,
+};
 
 pub struct Dotnet;
 

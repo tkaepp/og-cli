@@ -1,11 +1,8 @@
-use std::fs;
-use std::path::PathBuf;
-use std::time::SystemTime;
-
 use eyre::{Context, ContextCompat, Result};
 use homedir::get_my_home;
 use serde::{Deserialize, Serialize};
 use serde_yaml::{self, Value};
+use std::{fs, path::PathBuf, time::SystemTime};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct KubeConfig {

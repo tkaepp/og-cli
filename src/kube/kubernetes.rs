@@ -1,14 +1,13 @@
-use std::fmt::{Display, Formatter};
-use std::io::Read;
-
 use clap::{Args, Subcommand};
 use colored::Colorize;
 use dialoguer::MultiSelect;
 use eyre::Context;
+use std::{
+    fmt::{Display, Formatter},
+    io::Read,
+};
 
-use crate::kube::kube_config;
-use crate::kube::kube_config::*;
-use crate::kube::rancher::*;
+use super::{kube_config, kube_config::*, rancher::*};
 
 pub const KEYRING_SERVICE_ID: &str = "dg_cli_plugin_kube";
 pub const KEYRING_KEY: &str = "rancher_token";

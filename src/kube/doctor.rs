@@ -1,13 +1,16 @@
-use std::path::Path;
-
 use colored::Colorize;
 use eyre::Result;
+use std::path::Path;
 
-use crate::doctor::{DoctorFailure, DoctorSuccess};
-use crate::kube::kube_config::{get_kubeconfig_path, read_kubeconfig};
-use crate::kube::rancher::get_rancher_token;
-use crate::kube::Kubernetes;
-use crate::plugin::Plugin;
+use super::{
+    kube_config::{get_kubeconfig_path, read_kubeconfig},
+    rancher::get_rancher_token,
+    Kubernetes,
+};
+use crate::{
+    doctor::{DoctorFailure, DoctorSuccess},
+    plugin::Plugin,
+};
 
 const PLUGIN_NAME: &str = "Kubernetes";
 

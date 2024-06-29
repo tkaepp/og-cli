@@ -1,13 +1,10 @@
-use std::{collections::HashMap, default, io::Write};
-
-use json_to_table::json_to_table;
-
 use clap::{Args, Subcommand, ValueEnum};
+use eyre::Result;
 use json::object;
+use json_to_table::json_to_table;
 use serde_json::Value;
 
-use crate::config::{self};
-use eyre::Result;
+use crate::get_config;
 
 pub struct Search;
 
@@ -121,13 +118,9 @@ impl Search {
             } => {
                 Self.call_api(
                     match environment {
-                        SearchEnvironment::Oft => config::get_config().search_urls.oft.to_string(),
-                        SearchEnvironment::Test => {
-                            config::get_config().search_urls.test.to_string()
-                        }
-                        SearchEnvironment::Prod => {
-                            config::get_config().search_urls.prod.to_string()
-                        }
+                        SearchEnvironment::Oft => get_config().search_urls.oft.to_string(),
+                        SearchEnvironment::Test => get_config().search_urls.test.to_string(),
+                        SearchEnvironment::Prod => get_config().search_urls.prod.to_string(),
                     },
                     search_terms,
                     portal,

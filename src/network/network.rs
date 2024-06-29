@@ -1,7 +1,7 @@
 use std::process::Command;
 
+use super::{doctor::Tools, NetworkCommand};
 use crate::doctor::{is_command_in_path, DoctorFailure, DoctorSuccess};
-use crate::network::NetworkCommand;
 
 pub struct Network;
 
@@ -9,8 +9,7 @@ impl Network {
     pub fn run(_: NetworkCommand) {
         println!("Running Network Tests");
         let ping_result =
-            is_command_in_path(crate::network::doctor::Tools::Nslookup.to_string().as_str())
-                .and(Self::ping("10.1.4.4"));
+            is_command_in_path(Tools::Nslookup.to_string().as_str()).and(Self::ping("10.1.4.4"));
 
         match ping_result {
             Ok(x) => {
@@ -21,15 +20,14 @@ impl Network {
             }
         }
 
-        let nslookup_result =
-            is_command_in_path(crate::network::doctor::Tools::Nslookup.to_string().as_str())
-                .and(Self::nslookup("digitec.ch", "10.1.4.4"))
-                .and(Self::nslookup("backstage.devinite.com", "10.1.4.4"))
-                .and(Self::nslookup(
-                    "kubernetes-management.int.devinite.com",
-                    "10.1.4.4",
-                ))
-                .and(Self::nslookup("sqld-az-vm01.intranet.digitec", "10.1.4.4"));
+        let nslookup_result = is_command_in_path(Tools::Nslookup.to_string().as_str())
+            .and(Self::nslookup("digitec.ch", "10.1.4.4"))
+            .and(Self::nslookup("backstage.devinite.com", "10.1.4.4"))
+            .and(Self::nslookup(
+                "kubernetes-management.int.devinite.com",
+                "10.1.4.4",
+            ))
+            .and(Self::nslookup("sqld-az-vm01.intranet.digitec", "10.1.4.4"));
 
         match nslookup_result {
             Ok(x) => {

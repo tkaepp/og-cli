@@ -1,13 +1,12 @@
-use std::env;
-use std::fs;
-use std::process::Command;
-
 use clap::Args;
 use eyre::{ContextCompat, Result};
 use homedir::get_my_home;
+use std::{env, fs, process::Command};
 
-use crate::doctor::{DoctorFailure, DoctorSuccess};
-use crate::plugin::Plugin;
+use crate::{
+    doctor::{DoctorFailure, DoctorSuccess},
+    plugin::Plugin,
+};
 
 pub struct Fix;
 

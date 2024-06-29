@@ -1,5 +1,3 @@
-pub use config::get_config;
-
 pub mod common_docker;
 pub mod config;
 pub mod dg;
@@ -15,3 +13,5 @@ pub mod network;
 pub mod plugin;
 pub mod search;
 pub mod sql;
+
+pub use config::get_config;

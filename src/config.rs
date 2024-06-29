@@ -1,10 +1,3 @@
-use std::{
-    fs::{self, File},
-    io::copy,
-    path::Path,
-    sync::OnceLock,
-};
-
 use eyre::{eyre, Context, ContextCompat, Result};
 use figment::{
     providers::{Format, Json},
@@ -12,6 +5,12 @@ use figment::{
 };
 use homedir::get_my_home;
 use serde::{Deserialize, Serialize};
+use std::{
+    fs::{self, File},
+    io::copy,
+    path::Path,
+    sync::OnceLock,
+};
 
 const CONFIG_URL: &str =
     "https://dg-package-repositories.platform.test.int.devinite.com/og-cli/config.json";

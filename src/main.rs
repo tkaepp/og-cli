@@ -1,24 +1,22 @@
-use std::env;
-
-use clap::error::ErrorKind;
-use clap::{CommandFactory, Parser, Subcommand};
+use clap::{error::ErrorKind, CommandFactory, Parser, Subcommand};
 use eyre::Result;
-
-use og_cli::dg::{DgCli, DgCommand};
-use og_cli::doctor::DoctorCommand;
-use og_cli::dotnet::{self, DotnetCommand};
-use og_cli::fix::{self, FixCommand};
-use og_cli::graphql::{GraphQl, GraphQlCommand};
-use og_cli::kube::{self, KubernetesCommand};
-use og_cli::mongo_db::{self, MongoDbCommand};
-use og_cli::network::{Network, NetworkCommand};
-use og_cli::search::SearchCommand;
-use og_cli::sql;
-use og_cli::sql::SqlCommand;
-use og_cli::{config, search};
+use std::{env, process};
 
 #[cfg(feature = "git")]
 use og_cli::git::{self, GitCommand};
+use og_cli::{
+    config,
+    dg::{DgCli, DgCommand},
+    doctor::{self, DoctorCommand},
+    dotnet::{Dotnet, DotnetCommand},
+    fix::{self, FixCommand},
+    graphql::{GraphQl, GraphQlCommand},
+    kube::{Kubernetes, KubernetesCommand},
+    mongo_db::{MongoDb, MongoDbCommand},
+    network::{Network, NetworkCommand},
+    search::{Search, SearchCommand},
+    sql::{Sql, SqlCommand},
+};
 
 #[derive(Parser)]
 #[command(version, about)]
@@ -72,24 +70,22 @@ async fn main() -> Result<()> {
     match cli {
         Ok(c) => {
             match c.command {
-                Some(Commands::MongoDb(mongodb_command)) => mongo_db::MongoDb::run(mongodb_command),
-                Some(Commands::Sql(sql_command)) => sql::Sql::run(sql_command).await?,
-                Some(Commands::Dotnet(command)) => dotnet::Dotnet::run(command).expect("Reason"),
+                Some(Commands::MongoDb(mongodb_command)) => MongoDb::run(mongodb_command),
+                Some(Commands::Sql(sql_command)) => Sql::run(sql_command).await?,
+                Some(Commands::Dotnet(command)) => Dotnet::run(command).expect("Reason"),
                 #[cfg(feature = "git")]
-                Some(Commands::Git(git_command)) => git::Git::run(git_command),
+                Some(Commands::Git(git_command)) => Git::run(git_command),
                 Some(Commands::Fix(_)) => {
                     fix::Fix::run()?;
                 }
-                Some(Commands::Doctor(dr_command)) => og_cli::doctor::run(dr_command),
+                Some(Commands::Doctor(dr_command)) => doctor::run(dr_command),
                 Some(Commands::Kubernetes(kubernetes_command)) => {
-                    kube::Kubernetes::run(kubernetes_command).await?
+                    Kubernetes::run(kubernetes_command).await?
                 }
                 Some(Commands::GraphQl(graphql_command)) => {
                     GraphQl::run(graphql_command)?;
                 }
-                Some(Commands::Search(search_command)) => {
-                    search::Search::run(search_command).await?
-                } // default is to forward unknown commands to the python dg cli
+                Some(Commands::Search(search_command)) => Search::run(search_command).await?, // default is to forward unknown commands to the python dg cli
                 Some(Commands::Dg(dg_command)) => {
                     DgCli::run(dg_command)?;
                 }
@@ -100,7 +96,7 @@ async fn main() -> Result<()> {
                     let mut cmd = Cli::command();
                     cmd.build();
                     let _ = cmd.print_help();
-                    std::process::exit(0);
+                    process::exit(0);
                 }
             }
         }
