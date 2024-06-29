@@ -6,6 +6,7 @@ use serde_json::Value;
 
 use crate::get_config;
 
+/// Access the search API
 #[derive(Args, Debug)]
 pub struct SearchCommand {
     #[command(subcommand)]

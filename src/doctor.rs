@@ -5,6 +5,7 @@ use std::process::Command;
 use crate::git;
 use crate::{dotnet, fix, kube, mongo_db, network, plugin::Plugin, sql};
 
+/// Detect and fix problems
 #[derive(Args)]
 pub struct DoctorCommand {
     #[arg(short, long)]

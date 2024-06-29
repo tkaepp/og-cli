@@ -14,6 +14,7 @@ use crate::{
     plugin::Plugin,
 };
 
+/// .NET helpers
 #[derive(Args, Debug)]
 pub struct DotnetCommand {
     #[command(subcommand)]

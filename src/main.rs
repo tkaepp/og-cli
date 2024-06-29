@@ -28,36 +28,32 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Run a SQL server inside a docker container
     Sql(SqlCommand),
-    /// Run a MongoDB server inside a docker container
+
     #[clap(name = "mongodb")]
     MongoDb(MongoDbCommand),
-    /// GraphQL helpers
+
     #[clap(name = "graphql")]
     GraphQl(GraphQlCommand),
-    /// Access the search API
+
     Search(SearchCommand),
-    /// Detect and fix problems
+
     Doctor(DoctorCommand),
-    /// Recover the DG CLI (currently macOS only)
+
     #[clap(name = "fix-beta")]
     Fix(FixCommand),
-    /// .NET helpers
+
     #[clap(name = "dotnet-beta")]
     Dotnet(DotnetCommand),
-    /// Run kubeconfig helpers (currently Unix only)
+
     #[clap(name = "kube-beta")]
     Kubernetes(KubernetesCommand),
-    /// Git helpers
     #[cfg(feature = "git")]
     #[clap(name = "git-beta")]
     Git(GitCommand),
     #[clap(name = "dg-beta")]
-    /// Passthrough to DG CLI
     Dg(DgCommand),
     #[clap(name = "network-beta")]
-    /// BETA Run a network validation test
     Network(NetworkCommand),
 }
 

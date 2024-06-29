@@ -14,6 +14,7 @@ pub const KEYRING_KEY: &str = "rancher_token";
 pub const RANCHER_CLUSTER_SUFFIX_LENGTH: usize = 3;
 pub const RANCHER_CLUSTER_PREFIX: &str = "dg-";
 
+/// Run kubeconfig helpers (currently Unix only)
 #[derive(Args, Debug)]
 pub struct KubernetesCommand {
     #[command(subcommand)]

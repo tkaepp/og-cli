@@ -27,6 +27,7 @@ const IMAGE_NAME: &str = "mcr.microsoft.com/azure-sql-edge:latest";
 const VOLUME_BINDING: &str = "sql-data:/var/opt/mssql:rw";
 const PORT: i32 = 1433;
 
+/// Run a SQL server inside a docker container
 #[derive(Args, Debug)]
 pub struct SqlCommand {
     #[command(subcommand)]

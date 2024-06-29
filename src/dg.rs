@@ -2,6 +2,7 @@ use clap::Args;
 use eyre::Result;
 use std::process::Command;
 
+/// Passthrough to DG CLI
 #[derive(Debug, Args)]
 pub struct DgCommand;
 // {

@@ -1,5 +1,6 @@
 use clap::{Args, Subcommand};
 
+/// Run a network validation test
 #[derive(Args)]
 pub struct NetworkCommand {
     #[command(subcommand)]

@@ -7,6 +7,7 @@ use crate::{
     plugin::Plugin,
 };
 
+/// Run a MongoDB server inside a docker container
 #[derive(Args, Debug)]
 pub struct MongoDbCommand {
     #[command(subcommand)]

@@ -8,6 +8,7 @@ use crate::{
     plugin::Plugin,
 };
 
+/// Recover the DG CLI (currently macOS only)
 #[derive(Args, Debug)]
 pub struct FixCommand;
 

@@ -1,5 +1,6 @@
 use clap::{Args, Subcommand};
 
+/// Git helpers
 #[derive(Args, Debug)]
 pub struct GitCommand {
     #[command(subcommand)]

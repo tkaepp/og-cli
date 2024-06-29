@@ -10,6 +10,7 @@ use crate::{
 
 mod gid;
 
+/// GraphQL helpers
 #[derive(Debug, Args)]
 pub struct GraphQlCommand {
     #[command(subcommand)]
