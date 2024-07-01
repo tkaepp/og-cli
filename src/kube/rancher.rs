@@ -40,7 +40,11 @@ pub async fn get_rancher_kubeconfig(
 }
 
 pub fn get_rancher_token() -> eyre::Result<String> {
-    let entry = Entry::new(kubernetes::KEYRING_SERVICE_ID, kubernetes::KEYRING_KEY)?;
+    let entry = Entry::new_with_target(
+        kubernetes::KEYRING_SERVICE_ID,
+        kubernetes::KEYRING_SERVICE_ID,
+        kubernetes::KEYRING_KEY,
+    )?;
 
     Ok(entry.get_password()?)
 }
