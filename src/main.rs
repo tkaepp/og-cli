@@ -39,7 +39,7 @@ enum Commands {
     Doctor(DoctorCommand),
     #[clap(name = "fix-beta")]
     Fix(FixCommand),
-    #[clap(name = "dotnet-beta")]
+    #[clap(name = "dotnet")]
     Dotnet(DotnetCommand),
     #[clap(name = "kube-beta")]
     Kubernetes(KubernetesCommand),
