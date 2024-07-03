@@ -86,15 +86,18 @@ impl Plugin for KubernetesPlugin {
     }
 }
 
+// static mut NEW_KUBECONFIG_FIX_APPLIED: bool = false;
 fn apply_kubeconfig_fix() -> Result<(), String> {
-    // if self.new_kubeconfig_fix_applied {
+    // if NEW_KUBECONFIG_FIX_APPLIED {
     //     return Ok(());
     // }
 
     create_empty_kubeconfig(true)
-        .map_err(|_| format!("{}", "Unable to create a new empty kubeconfig!".red()))
+        .map_err(|_| format!("{}", "Unable to create a new empty kubeconfig!".red()))?;
 
-    // self.new_kubeconfig_fix_applied = true;
+    // NEW_KUBECONFIG_FIX_APPLIED = true;
+
+    Ok(())
 }
 
 fn apply_rancher_token_fix() -> Result<(), String> {
