@@ -16,7 +16,7 @@ use crate::{
 const PLUGIN_NAME: &str = "Kubernetes";
 
 impl KubernetesPlugin {
-    fn is_kubeconfig_existing() -> Result<DoctorSuccess, DoctorFailure> {
+    fn is_kubeconfig_existing(&self) -> Result<DoctorSuccess, DoctorFailure> {
         let path = get_kubeconfig_path().unwrap().path;
         if Path::new(path.as_path()).exists() {
             return Ok(DoctorSuccess {
@@ -31,14 +31,11 @@ impl KubernetesPlugin {
                 "No existing kubeconfig has been found. Please add a valid kubeconfig".red()
             ),
             plugin: PLUGIN_NAME.to_string(),
-            fix: Some(Box::new(|| {
-                create_empty_kubeconfig(true)
-                    .map_err(|_| format!("{}", "Unable to create a new empty kubeconfig!".red()))
-            })),
+            fix: Some(Box::new(apply_kubeconfig_fix)),
         })
     }
 
-    fn is_kubeconfig_valid() -> Result<DoctorSuccess, DoctorFailure> {
+    fn is_kubeconfig_valid(&self) -> Result<DoctorSuccess, DoctorFailure> {
         if let Err(error) = read_kubeconfig() {
             return Err(DoctorFailure {
                 message: format!(
@@ -47,11 +44,7 @@ impl KubernetesPlugin {
                     error.to_string().yellow()
                 ),
                 plugin: PLUGIN_NAME.to_string(),
-                fix: Some(Box::new(|| {
-                    create_empty_kubeconfig(true).map_err(|_| {
-                        format!("{}", "Unable to create a new empty kubeconfig!".red())
-                    })
-                })),
+                fix: Some(Box::new(apply_kubeconfig_fix)),
             });
         }
 
@@ -72,10 +65,7 @@ impl KubernetesPlugin {
                     error.to_string().yellow()
                 ),
                 plugin: PLUGIN_NAME.to_string(),
-                fix: Some(Box::new(|| {
-                    add_rancher_token()
-                        .map_err(|_| format!("{}", "Unable to add new Rancher API token!".red()))
-                })),
+                fix: Some(Box::new(apply_rancher_token_fix)),
             });
         }
 
@@ -89,11 +79,26 @@ impl KubernetesPlugin {
 impl Plugin for KubernetesPlugin {
     fn doctor(&self) -> Vec<Result<DoctorSuccess, DoctorFailure>> {
         vec![
-            Self::is_kubeconfig_existing(),
-            Self::is_kubeconfig_valid(),
+            Self::is_kubeconfig_existing(self),
+            Self::is_kubeconfig_valid(self),
             Self::is_rancher_token_available(),
         ]
     }
+}
+
+fn apply_kubeconfig_fix() -> Result<(), String> {
+    // if self.new_kubeconfig_fix_applied {
+    //     return Ok(());
+    // }
+
+    create_empty_kubeconfig(true)
+        .map_err(|_| format!("{}", "Unable to create a new empty kubeconfig!".red()))
+
+    // self.new_kubeconfig_fix_applied = true;
+}
+
+fn apply_rancher_token_fix() -> Result<(), String> {
+    add_rancher_token().map_err(|_| format!("{}", "Unable to add new Rancher API token!".red()))
 }
 
 fn print_credential_store_warning() {
