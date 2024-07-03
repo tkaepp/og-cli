@@ -118,7 +118,9 @@ fn dotnet_run(additional_params: Option<String>, dry_run: bool) -> Result<()> {
         .map(|l| l.path_to_csproj.to_str().unwrap())
         .collect();
 
-    project_items.last().context("I cannot find any dotnet projects with launch settings")?;
+    project_items
+        .last()
+        .context("I cannot find any dotnet projects with launch settings")?;
 
     let selected_proj = Select::new()
         .with_prompt("Select project")
