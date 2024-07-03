@@ -1,8 +1,12 @@
+use colored::Colorize;
+use dialoguer::Select;
 use eyre::eyre;
 use keyring::Entry;
+use log::info;
 use rancher::RancherClient;
 use reqwest::{Client, Url};
 use serde::Deserialize;
+use std::ffi::OsStr;
 
 use super::{
     kubernetes::{self, Cluster},
@@ -88,4 +92,43 @@ pub async fn get_rancher_clusters(rancher_token: &str) -> Vec<Cluster> {
     }
 
     Vec::new()
+}
+
+pub fn add_rancher_token() -> eyre::Result<()> {
+    let selected_option = Select::new()
+        .with_prompt("Would you like to create a new Rancher API token or use an existing one")
+        .default(0)
+        .items(&["New Token", "Existing Token"])
+        .interact()
+        .unwrap();
+
+    match selected_option {
+        0 => create_new_rancher_token()?,
+        1 => add_existing_rancher_token()?,
+        _ => unimplemented!(),
+    };
+
+    Ok(())
+}
+
+fn create_new_rancher_token() -> eyre::Result<()> {
+    let mut rancher_url = get_config().rancher_base_url.clone();
+    rancher_url.push_str("/dashboard/account/create-key");
+
+    info!("Use these options to create a new Rancher API token:");
+    info!("1. Open {}", &rancher_url);
+    info!("2. Create a new Rancher API token");
+    info!("\t{}:\t\t{}", "Description".cyan(), "OG-CLI");
+    info!("\t{}:\t\t\t{}", "Scope".cyan(), "No Scope");
+    info!("\t{}:\t{}", "Automatically expire".cyan(), "Never");
+
+    open::that(OsStr::new(&rancher_url))?;
+
+    add_existing_rancher_token()?;
+
+    Ok(())
+}
+
+fn add_existing_rancher_token() -> eyre::Result<()> {
+    Ok(())
 }
