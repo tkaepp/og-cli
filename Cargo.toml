@@ -37,7 +37,6 @@ json_to_table = "0.7.0"
 keyring = "2.3.3"
 lazy_static = "1.5.0"
 log = "0.4.22"
-open = "5.2.0"
 rancher = { git = "https://github.com/dannyyy/rancher-rs.git" }
 regex = "1.10.5"
 reqwest = { version = "0.12.5", default-features = false, features = [

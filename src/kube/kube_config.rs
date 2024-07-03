@@ -1,7 +1,5 @@
-use colored::Colorize;
-use eyre::{Context, ContextCompat, Ok, Result};
+use eyre::{Context, ContextCompat, Result};
 use homedir::get_my_home;
-use log::info;
 use serde::{Deserialize, Serialize};
 use serde_yaml::{self, Value};
 use std::{fs, path::PathBuf, time::SystemTime};
@@ -91,17 +89,8 @@ pub fn write_kubeconfig(kube_config: KubeConfig, backup: bool) -> Result<()> {
     let updated_kube_config_content = serde_yaml::to_string(&kube_config)?;
     let kubeconfig_path = get_kubeconfig_path()?;
 
-    if backup && kubeconfig_path.path.exists() {
+    if backup {
         fs::copy(&kubeconfig_path.path, &kubeconfig_path.backup_path)?;
-        info!(
-            "Created a backup of the existing kubeconfig: {}",
-            kubeconfig_path
-                .backup_path
-                .as_path()
-                .to_str()
-                .unwrap()
-                .cyan()
-        );
     }
 
     // Write the updated config back to the file
@@ -125,21 +114,4 @@ pub fn get_kubeconfig_path() -> Result<KubeconfigPath> {
         .join(format!(".kube/config.bak-{}", timestamp));
 
     Ok(KubeconfigPath { path, backup_path })
-}
-
-pub fn create_empty_kubeconfig(kubeconfig_backup: bool) -> Result<()> {
-    let empty_kubeconfig = KubeConfig {
-        kind: "Config".to_string(),
-        api_version: "v1".to_string(),
-        current_context: "".to_string(),
-        preferences: None,
-        clusters: Vec::new(),
-        contexts: Vec::new(),
-        users: Vec::new(),
-    };
-
-    write_kubeconfig(empty_kubeconfig, kubeconfig_backup)?;
-
-    info!("{}", "A new kubeconfig has been created\n".green());
-    Ok(())
 }
