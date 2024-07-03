@@ -117,6 +117,11 @@ fn dotnet_run(additional_params: Option<String>, dry_run: bool) -> Result<()> {
         .iter()
         .map(|l| l.path_to_csproj.to_str().unwrap())
         .collect();
+
+    project_items
+        .last()
+        .context("I cannot find any dotnet projects with launch settings")?;
+
     let selected_proj = Select::new()
         .with_prompt("Select project")
         .items(&project_items)
@@ -156,7 +161,8 @@ fn dotnet_run(additional_params: Option<String>, dry_run: bool) -> Result<()> {
             .arg("run")
             .args(args)
             .spawn()
-            .expect("Could not run dotnet command");
+            .expect("Could not run dotnet command")
+            .wait()?;
     }
     Ok(())
 }
