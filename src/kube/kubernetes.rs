@@ -151,6 +151,7 @@ async fn run_sync(kubeconfig_backup: bool) -> eyre::Result<()> {
         return Ok(());
     }
 
+    let mut kubeconfig = read_kubeconfig()?;
     for selected_action in selected_actions {
         let action = &cluster_synch_actions[selected_action].action;
         let local_cluster = &cluster_synch_actions[selected_action].local_cluster;
@@ -159,26 +160,28 @@ async fn run_sync(kubeconfig_backup: bool) -> eyre::Result<()> {
         match action {
             SyncAction::Create => {
                 create_kubeconfig_entry(
+                    &mut kubeconfig,
                     remote_cluster.as_ref().unwrap(),
                     &rancher_token,
-                    kubeconfig_backup,
                 )
                 .await?
             }
             SyncAction::Update => {
                 update_kubeconfig_entry(
+                    &mut kubeconfig,
                     local_cluster.as_ref().unwrap(),
                     remote_cluster.as_ref().unwrap(),
                     &rancher_token,
-                    kubeconfig_backup,
                 )
                 .await?
             }
             SyncAction::Delete => {
-                delete_kubeconfig_entry(local_cluster.as_ref().unwrap(), kubeconfig_backup)?
+                delete_kubeconfig_entry(&mut kubeconfig, local_cluster.as_ref().unwrap())?
             }
         }
     }
+
+    write_kubeconfig(kubeconfig, kubeconfig_backup)?;
 
     info!(
         "{}",
@@ -348,11 +351,10 @@ fn get_cluster_sync_actions(
 }
 
 async fn create_kubeconfig_entry(
+    kubeconfig: &mut KubeConfig,
     rancher_cluster: &Cluster,
     rancher_token: &String,
-    kubeconfig_backup: bool,
 ) -> eyre::Result<()> {
-    let mut kubeconfig = read_kubeconfig()?;
     let name = &get_cluster_fullname(rancher_cluster);
     let token_url = rancher_cluster.token_url.as_ref().expect("");
     let rancher_kubeconfig = get_rancher_kubeconfig(token_url.to_string(), rancher_token).await?;
@@ -399,16 +401,15 @@ async fn create_kubeconfig_entry(
         },
     });
 
-    write_kubeconfig(kubeconfig, kubeconfig_backup)
+    Ok(())
 }
 
 async fn update_kubeconfig_entry(
+    kubeconfig: &mut KubeConfig,
     local_cluster: &Cluster,
     rancher_cluster: &Cluster,
     rancher_token: &String,
-    kubeconfig_backup: bool,
 ) -> eyre::Result<()> {
-    let mut kubeconfig = read_kubeconfig()?;
     let token_url = rancher_cluster.token_url.as_ref().expect("");
     let rancher_kubeconfig = get_rancher_kubeconfig(token_url.to_string(), rancher_token).await?;
 
@@ -442,12 +443,10 @@ async fn update_kubeconfig_entry(
             .to_string(),
     );
 
-    write_kubeconfig(kubeconfig, kubeconfig_backup)
+    Ok(())
 }
 
-fn delete_kubeconfig_entry(local_cluster: &Cluster, kubeconfig_backup: bool) -> eyre::Result<()> {
-    let mut kubeconfig = read_kubeconfig()?;
-
+fn delete_kubeconfig_entry(kubeconfig: &mut KubeConfig, local_cluster: &Cluster) -> eyre::Result<()> {
     kubeconfig
         .clusters
         .retain(|c| c.name != get_cluster_fullname(local_cluster));
@@ -458,7 +457,7 @@ fn delete_kubeconfig_entry(local_cluster: &Cluster, kubeconfig_backup: bool) -> 
         .users
         .retain(|c| c.name != get_cluster_fullname(local_cluster));
 
-    write_kubeconfig(kubeconfig, kubeconfig_backup)
+    Ok(())
 }
 
 fn get_cluster_fullname(cluster: &Cluster) -> String {
