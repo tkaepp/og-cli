@@ -1,5 +1,5 @@
 use colored::Colorize;
-use dialoguer::Select;
+use dialoguer::{Password, Select};
 use eyre::eyre;
 use keyring::Entry;
 use log::info;
@@ -130,5 +130,41 @@ fn create_new_rancher_token() -> eyre::Result<()> {
 }
 
 fn add_existing_rancher_token() -> eyre::Result<()> {
+    let token = Password::new()
+        .with_prompt("Please enter your Rancher API token")
+        .validate_with(|t: &String| -> Result<(), &str> {
+            if t.starts_with("token-") {
+                Ok(())
+            } else {
+                Err("Entered token format seems to be invalid. Token must start with 'token-'")
+            }
+        })
+        .interact()
+        .unwrap();
+
+    set_rancher_token(&token)?;
+    info!(
+        "{}",
+        "Rancher API token persisted in system credential store".green()
+    );
+
     Ok(())
+}
+
+#[cfg(target_family = "unix")]
+pub fn set_rancher_token(token: &String) -> eyre::Result<()> {
+    let entry = Entry::new(kubernetes::KEYRING_SERVICE_ID, kubernetes::KEYRING_KEY)?;
+
+    Ok(entry.set_password(token)?)
+}
+
+#[cfg(target_family = "windows")]
+pub fn set_rancher_token(token: &String) -> eyre::Result<()> {
+    let entry = Entry::new_with_target(
+        kubernetes::KEYRING_SERVICE_ID,
+        kubernetes::KEYRING_SERVICE_ID,
+        kubernetes::KEYRING_KEY,
+    )?;
+
+    Ok(entry.set_password(token1)?)
 }
