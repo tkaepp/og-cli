@@ -41,7 +41,7 @@ enum Commands {
     Fix(FixCommand),
     #[clap(name = "dotnet")]
     Dotnet(DotnetCommand),
-    #[clap(name = "kube-beta")]
+    #[clap(name = "kube")]
     Kubernetes(KubernetesCommand),
     #[cfg(feature = "git")]
     #[clap(name = "git-beta")]
