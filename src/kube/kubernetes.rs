@@ -446,7 +446,10 @@ async fn update_kubeconfig_entry(
     Ok(())
 }
 
-fn delete_kubeconfig_entry(kubeconfig: &mut KubeConfig, local_cluster: &Cluster) -> eyre::Result<()> {
+fn delete_kubeconfig_entry(
+    kubeconfig: &mut KubeConfig,
+    local_cluster: &Cluster,
+) -> eyre::Result<()> {
     kubeconfig
         .clusters
         .retain(|c| c.name != get_cluster_fullname(local_cluster));

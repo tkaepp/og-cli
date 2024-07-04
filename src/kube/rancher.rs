@@ -152,19 +152,19 @@ fn add_existing_rancher_token() -> eyre::Result<()> {
 }
 
 #[cfg(target_family = "unix")]
-pub fn set_rancher_token(token: &String) -> eyre::Result<()> {
+pub fn set_rancher_token(token: &str) -> eyre::Result<()> {
     let entry = Entry::new(kubernetes::KEYRING_SERVICE_ID, kubernetes::KEYRING_KEY)?;
 
     Ok(entry.set_password(token)?)
 }
 
 #[cfg(target_family = "windows")]
-pub fn set_rancher_token(token: &String) -> eyre::Result<()> {
+pub fn set_rancher_token(token: &str) -> eyre::Result<()> {
     let entry = Entry::new_with_target(
         kubernetes::KEYRING_SERVICE_ID,
         kubernetes::KEYRING_SERVICE_ID,
         kubernetes::KEYRING_KEY,
     )?;
 
-    Ok(entry.set_password(token1)?)
+    Ok(entry.set_password(token)?)
 }
