@@ -1,12 +1,9 @@
 use clap::{Args, Subcommand};
 use colored::Colorize;
-use dialoguer::MultiSelect;
+use dialoguer::{Confirm, MultiSelect};
 use eyre::Context;
-use log::{error, info};
-use std::{
-    fmt::{Display, Formatter},
-    io::Read,
-};
+use log::{error, info, warn};
+use std::fmt::{Display, Formatter};
 
 use super::{kube_config, kube_config::*, rancher::*};
 
@@ -24,16 +21,28 @@ pub struct KubernetesCommand {
 
 #[derive(Subcommand, Debug)]
 pub enum KubernetesSubcommands {
+    /// Initializes your environment for the first use
+    Init {
+        /// Do not create a kubeconfig if not exists
+        #[arg(short = 'K', long)]
+        no_kubeconfig: bool,
+        /// Do not create a new Rancher API token
+        #[arg(short = 'T', long)]
+        no_rancher_token: bool,
+        /// Omits doing a backup of your kubeconfig
+        #[arg(short = 'B', long)]
+        no_backup: bool,
+    },
     /// Synchronizes the DG Rancher Kubernetes contexts
     Sync {
         /// Omits doing a backup of your kubeconfig
-        #[arg(short, long)]
+        #[arg(short = 'B', long)]
         no_backup: bool,
     },
     /// Cleanup (delete) local kubeconfig
     Cleanup {
         /// Omits doing a backup of your kubeconfig
-        #[arg(short, long)]
+        #[arg(short = 'B', long)]
         no_backup: bool,
     },
 }
@@ -48,6 +57,12 @@ impl KubernetesPlugin {
                 .context("Unable to sync clusters due to errors")?,
             KubernetesSubcommands::Cleanup { no_backup } => run_cleanup(!no_backup)
                 .context("Unable to cleanup local kubeconfig due to errors")?,
+            KubernetesSubcommands::Init {
+                no_kubeconfig,
+                no_rancher_token,
+                no_backup,
+            } => run_init(!no_kubeconfig, !no_rancher_token, !no_backup)
+                .context("Unable to initialize your local environment for first use")?,
         }
 
         Ok(())
@@ -93,9 +108,7 @@ impl Display for ClusterSyncAction {
 }
 
 async fn run_sync(kubeconfig_backup: bool) -> eyre::Result<()> {
-    info!("{}", "Depending on your OS, you have to confirm or enter your password to access the credential store to retrieve the necessary access tokens [ENTER]".bright_green());
-    let buffer = &mut [0u8];
-    std::io::stdin().read_exact(buffer).unwrap();
+    print_credential_store_warning();
 
     let rancher_token = get_rancher_token()?;
     let rancher_clusters = get_rancher_clusters(&rancher_token).await;
@@ -138,6 +151,7 @@ async fn run_sync(kubeconfig_backup: bool) -> eyre::Result<()> {
         return Ok(());
     }
 
+    let mut kubeconfig = read_kubeconfig()?;
     for selected_action in selected_actions {
         let action = &cluster_synch_actions[selected_action].action;
         let local_cluster = &cluster_synch_actions[selected_action].local_cluster;
@@ -146,26 +160,28 @@ async fn run_sync(kubeconfig_backup: bool) -> eyre::Result<()> {
         match action {
             SyncAction::Create => {
                 create_kubeconfig_entry(
+                    &mut kubeconfig,
                     remote_cluster.as_ref().unwrap(),
                     &rancher_token,
-                    kubeconfig_backup,
                 )
                 .await?
             }
             SyncAction::Update => {
                 update_kubeconfig_entry(
+                    &mut kubeconfig,
                     local_cluster.as_ref().unwrap(),
                     remote_cluster.as_ref().unwrap(),
                     &rancher_token,
-                    kubeconfig_backup,
                 )
                 .await?
             }
             SyncAction::Delete => {
-                delete_kubeconfig_entry(local_cluster.as_ref().unwrap(), kubeconfig_backup)?
+                delete_kubeconfig_entry(&mut kubeconfig, local_cluster.as_ref().unwrap())?
             }
         }
     }
+
+    write_kubeconfig(kubeconfig, kubeconfig_backup)?;
 
     info!(
         "{}",
@@ -219,6 +235,41 @@ fn run_cleanup(kubeconfig_backup: bool) -> eyre::Result<()> {
         "{}",
         "Your local kubeconfig has been cleaned up successfully".green()
     );
+
+    Ok(())
+}
+
+fn run_init(
+    create_kubeconfig: bool,
+    create_rancher_token: bool,
+    kubeconfig_backup: bool,
+) -> eyre::Result<()> {
+    if create_kubeconfig {
+        let kubeconfig_result = read_kubeconfig();
+        match kubeconfig_result {
+            Ok(_) => info!(
+                "{}",
+                "An existing kubeconfig has been found. Creation skipped\n".green()
+            ),
+            Err(_) => create_empty_kubeconfig(kubeconfig_backup)?,
+        }
+    }
+
+    if create_rancher_token {
+        print_credential_store_warning();
+
+        let rancher_token_result = get_rancher_token();
+        match rancher_token_result {
+            Ok(_) => {
+                warn!("{}", "An existing Rancher API token has been found in the credential store. Overwrite?".yellow());
+                let confirmed = Confirm::new().default(false).interact_opt().unwrap();
+                if let Some(true) = confirmed {
+                    add_rancher_token()?;
+                }
+            }
+            Err(_) => add_rancher_token()?,
+        }
+    }
 
     Ok(())
 }
@@ -300,11 +351,10 @@ fn get_cluster_sync_actions(
 }
 
 async fn create_kubeconfig_entry(
+    kubeconfig: &mut KubeConfig,
     rancher_cluster: &Cluster,
     rancher_token: &String,
-    kubeconfig_backup: bool,
 ) -> eyre::Result<()> {
-    let mut kubeconfig = read_kubeconfig()?;
     let name = &get_cluster_fullname(rancher_cluster);
     let token_url = rancher_cluster.token_url.as_ref().expect("");
     let rancher_kubeconfig = get_rancher_kubeconfig(token_url.to_string(), rancher_token).await?;
@@ -351,16 +401,15 @@ async fn create_kubeconfig_entry(
         },
     });
 
-    write_kubeconfig(kubeconfig, kubeconfig_backup)
+    Ok(())
 }
 
 async fn update_kubeconfig_entry(
+    kubeconfig: &mut KubeConfig,
     local_cluster: &Cluster,
     rancher_cluster: &Cluster,
     rancher_token: &String,
-    kubeconfig_backup: bool,
 ) -> eyre::Result<()> {
-    let mut kubeconfig = read_kubeconfig()?;
     let token_url = rancher_cluster.token_url.as_ref().expect("");
     let rancher_kubeconfig = get_rancher_kubeconfig(token_url.to_string(), rancher_token).await?;
 
@@ -394,12 +443,13 @@ async fn update_kubeconfig_entry(
             .to_string(),
     );
 
-    write_kubeconfig(kubeconfig, kubeconfig_backup)
+    Ok(())
 }
 
-fn delete_kubeconfig_entry(local_cluster: &Cluster, kubeconfig_backup: bool) -> eyre::Result<()> {
-    let mut kubeconfig = read_kubeconfig()?;
-
+fn delete_kubeconfig_entry(
+    kubeconfig: &mut KubeConfig,
+    local_cluster: &Cluster,
+) -> eyre::Result<()> {
     kubeconfig
         .clusters
         .retain(|c| c.name != get_cluster_fullname(local_cluster));
@@ -410,9 +460,13 @@ fn delete_kubeconfig_entry(local_cluster: &Cluster, kubeconfig_backup: bool) -> 
         .users
         .retain(|c| c.name != get_cluster_fullname(local_cluster));
 
-    write_kubeconfig(kubeconfig, kubeconfig_backup)
+    Ok(())
 }
 
 fn get_cluster_fullname(cluster: &Cluster) -> String {
     format!("{}{}", cluster.name, cluster.name_suffix)
+}
+
+fn print_credential_store_warning() {
+    info!("Depending on your OS, you have to confirm or enter your password to access the credential store to retrieve the necessary access tokens\n");
 }
