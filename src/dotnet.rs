@@ -140,8 +140,6 @@ fn dotnet_run(additional_params: Option<String>, dry_run: bool) -> Result<()> {
         .context("Project directory not found")?;
     let mut args = vec![];
     args.push("--launch-profile '".to_string() + launch_setting_name + "'");
-    args.push("--no-build".to_string());
-    args.push("--no-restore".to_string());
     if let Some(additional_args) = additional_params {
         args.push(additional_args);
     };
