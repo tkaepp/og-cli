@@ -1,6 +1,7 @@
 use clap::Args;
 use log::{error, info};
 use std::process::Command;
+use which::which;
 
 #[cfg(feature = "git")]
 use crate::git;
@@ -70,11 +71,7 @@ pub fn run(dr_command: DoctorCommand) {
     }
 }
 pub fn is_command_in_path(command: &str) -> Result<DoctorSuccess, DoctorFailure> {
-    let res = match Command::new(command)
-        .stdout(std::process::Stdio::null())
-        .stderr(std::process::Stdio::null())
-        .spawn()
-    {
+    let res = match which(command) {
         Ok(_) => Ok(DoctorSuccess {
             message: "is installed".to_string(),
             plugin: command.to_string(),

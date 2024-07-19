@@ -56,6 +56,7 @@ ssh-key = { version = "0.6.6", features = [
 ] }
 tempfile = "3.10.1"
 tokio = "1.38.0"
+which = "6.0.1"
 
 [features]
 git = ["dep:git2"]
