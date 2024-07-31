@@ -1,9 +1,9 @@
 [package]
 name = "og-cli"
-version = "0.11.0"
+version = "0.12.0"
 edition = "2021"
 authors = ["Digitec Galaxus OGs"]
-repository = "https://github.com/tkaepp/og-cli"
+repository = "https://github.com/DigitecGalaxus/og-cli"
 description = "The CLI for DG OGs"
 
 [package.metadata.wix]
