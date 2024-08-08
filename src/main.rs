@@ -1,8 +1,9 @@
+use std::{env, process};
+
 use clap::{error::ErrorKind, CommandFactory, Parser, Subcommand};
 use eyre::Result;
 use log::LevelFilter;
 use simplelog::{ColorChoice, ConfigBuilder, TermLogger, TerminalMode};
-use std::{env, process};
 
 #[cfg(feature = "git")]
 use og_cli::git::{GitCommand, GitPlugin};
@@ -74,7 +75,7 @@ async fn main() -> Result<()> {
                 Some(Commands::Sql(sql_command)) => SqlPlugin::run(sql_command).await?,
                 Some(Commands::Dotnet(command)) => DotnetPlugin::run(command).expect("Reason"),
                 #[cfg(feature = "git")]
-                Some(Commands::Git(git_command)) => GitPlugin::run(git_command),
+                Some(Commands::Git(git_command)) => GitPlugin::run(git_command).await,
                 Some(Commands::Fix(_)) => {
                     fix::FixPlugin::run()?;
                 }
