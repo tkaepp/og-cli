@@ -1,6 +1,5 @@
 use clap::Args;
 use log::{error, info};
-use std::process::Command;
 use which::which;
 
 #[cfg(feature = "git")]
